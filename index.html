@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -322,6 +323,46 @@
     .footer-links a { font-size: 13px; color: var(--muted); text-decoration: none; transition: color .2s; }
     .footer-links a:hover { color: var(--text); }
 
+    /* ── Auth Modal ── */
+    #bbb-modal {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(6,9,26,.85); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center;
+    }
+    .bbb-modal-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 24px; padding: 40px 36px; width: 100%; max-width: 420px;
+      margin: 16px; position: relative;
+    }
+    .bbb-modal-close {
+      position: absolute; top: 16px; right: 20px;
+      background: none; border: none; color: var(--muted);
+      font-size: 22px; cursor: pointer; line-height: 1; font-family: inherit;
+    }
+    .bbb-modal-close:hover { color: var(--text); }
+    .bbb-modal-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .bbb-modal-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+    .bbb-field { margin-bottom: 16px; }
+    .bbb-field label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+    .bbb-field input {
+      width: 100%; padding: 12px 14px; border-radius: 10px;
+      background: var(--dark); border: 1px solid var(--border);
+      color: var(--text); font-size: 14px; font-family: inherit;
+      outline: none; transition: border-color .2s;
+    }
+    .bbb-field input:focus { border-color: #E1306C; }
+    .bbb-submit { width: 100%; padding: 14px; border-radius: 12px; font-size: 15px; margin-top: 8px; cursor: pointer; }
+    .bbb-toggle { font-size: 13px; color: var(--muted); text-align: center; margin-top: 18px; }
+    .bbb-toggle a { color: #f472b6; cursor: pointer; text-decoration: underline; }
+    .bbb-error { font-size: 13px; color: #f87171; margin-top: 8px; min-height: 18px; }
+    .bbb-spinner {
+      display: inline-block; width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,.35); border-top-color: #fff;
+      border-radius: 50%; animation: bbbspin .6s linear infinite;
+      vertical-align: middle; margin-right: 8px;
+    }
+    @keyframes bbbspin { to { transform: rotate(360deg); } }
+
     /* ── Toast ── */
     #toast {
       position: fixed; bottom: 28px; left: 50%;
@@ -356,7 +397,7 @@
     <li><a href="#faq">FAQ</a></li>
     <li><a href="sitemap.html">Site Map</a></li>
   </ul>
-  <button class="grad-btn nav-cta" onclick="showToast('Opening bank connection…')">Get Started Free</button>
+  <button class="grad-btn nav-cta" onclick="openModal('free')">Get Started Free</button>
 </nav>
 
 <!-- ── Hero ─────────────────────────────────────────────────── -->
@@ -373,7 +414,7 @@
     Our AI does the heavy lifting — you keep the money.
   </p>
   <div class="hero-btns">
-    <button class="grad-btn primary" onclick="showToast('Connecting your bank via Plaid…')">
+    <button class="grad-btn primary" onclick="openModal('bank_link')">
       Get Access — Connect Your Bank →
     </button>
     <button class="secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
@@ -501,7 +542,7 @@
           <li><span class="cross dim">✗</span> <span class="dim">$400+ Personalized Feed</span></li>
           <li><span class="cross dim">✗</span> <span class="dim">ROIC Calculator</span></li>
         </ul>
-        <button class="plan-btn outline" onclick="showToast('Creating your free account…')">Get Started Free</button>
+        <button class="plan-btn outline" onclick="openModal('free')">Get Started Free</button>
       </div>
 
       <!-- Pro Plan -->
@@ -525,7 +566,7 @@
           <li><span class="check">✓</span> ROIC &amp; APY Calculator</li>
           <li><span class="check">✓</span> Priority Support</li>
         </ul>
-        <button class="grad-btn plan-btn" onclick="showToast('Starting your 3-day free trial…')">Start 3-Day Free Trial →</button>
+        <button class="grad-btn plan-btn" onclick="openModal('trial')">Start 3-Day Free Trial →</button>
         <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px">No credit card · Cancel before day 4 to pay nothing</p>
       </div>
     </div>
@@ -654,7 +695,7 @@
 <section id="cta">
   <h2 class="fade-in">Ready to start <span class="grad-text">earning?</span></h2>
   <p class="fade-in">Join thousands of members earning $300–$600+ per bank offer. 3-day free trial, no credit card needed.</p>
-  <button class="grad-btn cta-btn fade-in" onclick="showToast('Connecting your bank via Plaid…')">
+  <button class="grad-btn cta-btn fade-in" onclick="openModal('bank_link')">
     Start Earning Today — It's Free →
   </button>
   <p style="margin-top:16px;font-size:13px;color:var(--muted)" class="fade-in">
@@ -674,6 +715,34 @@
 
 <!-- Toast notification -->
 <div id="toast"></div>
+
+<!-- ── Auth Modal ──────────────────────────────────────────────── -->
+<div id="bbb-modal" role="dialog" aria-modal="true" aria-labelledby="bbb-modal-title-text">
+  <div class="bbb-modal-card">
+    <button class="bbb-modal-close" onclick="closeModal()" aria-label="Close">×</button>
+    <div id="bbb-modal-title-text" class="bbb-modal-title">Create Your Account</div>
+    <div class="bbb-modal-sub" id="bbb-modal-sub">Free to start — no credit card needed</div>
+    <form id="bbb-auth-form" onsubmit="handleAuth(event)" data-mode="register">
+      <div class="bbb-field" id="bbb-name-field">
+        <label for="bbb-name">Full Name</label>
+        <input type="text" id="bbb-name" placeholder="Jane Smith" autocomplete="name" />
+      </div>
+      <div class="bbb-field">
+        <label for="bbb-email">Email</label>
+        <input type="email" id="bbb-email" placeholder="you@example.com" required autocomplete="email" />
+      </div>
+      <div class="bbb-field">
+        <label for="bbb-password">Password</label>
+        <input type="password" id="bbb-password" placeholder="Min. 8 characters" required minlength="8" autocomplete="new-password" />
+      </div>
+      <div class="bbb-error" id="bbb-error"></div>
+      <button type="submit" class="grad-btn bbb-submit" id="bbb-submit-btn">Create Account</button>
+    </form>
+    <div class="bbb-toggle" id="bbb-toggle-row">
+      Already have an account? <a onclick="toggleAuthMode()">Sign in</a>
+    </div>
+  </div>
+</div>
 
 <script>
   // ── Toast ──────────────────────────────────────────────────────
@@ -737,6 +806,191 @@
     document.querySelector('nav').style.boxShadow =
       window.scrollY > 10 ? '0 4px 32px rgba(0,0,0,.4)' : 'none';
   }, { passive: true });
+</script>
+
+<!-- ── Backend Integration ─────────────────────────────────────── -->
+<script>
+  const _isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const BBB_API = (window.BBB_API_BASE || (_isLocal ? 'http://localhost:8000' : 'https://bigbb-api-prod.onrender.com')).replace(/\/$/, '');
+  let _bbbIntent = 'free';
+
+  // ── Modal open/close ───────────────────────────────────────────
+  function openModal(intent) {
+    _bbbIntent = intent;
+    const titles = {
+      bank_link: 'Connect Your Bank',
+      trial:     'Start Your 3-Day Free Trial',
+      free:      'Create Your Free Account',
+    };
+    const subs = {
+      bank_link: 'Register to link your bank via Plaid and start earning.',
+      trial:     'Get full Pro access free for 3 days — no credit card.',
+      free:      'Browse offers and explore the platform at no cost.',
+    };
+    document.getElementById('bbb-modal-title-text').textContent = titles[intent] || titles.free;
+    document.getElementById('bbb-modal-sub').textContent        = subs[intent]   || subs.free;
+    const form = document.getElementById('bbb-auth-form');
+    form.dataset.mode = 'register';
+    _applyAuthMode('register');
+    document.getElementById('bbb-error').textContent = '';
+    form.reset();
+    document.getElementById('bbb-modal').style.display = 'flex';
+    setTimeout(() => document.getElementById('bbb-email').focus(), 50);
+  }
+
+  function closeModal() {
+    document.getElementById('bbb-modal').style.display = 'none';
+  }
+
+  document.getElementById('bbb-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+  });
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+  // ── Register / Login mode toggle ───────────────────────────────
+  function _applyAuthMode(mode) {
+    document.getElementById('bbb-auth-form').dataset.mode = mode;
+    document.getElementById('bbb-name-field').style.display = mode === 'register' ? '' : 'none';
+    document.getElementById('bbb-submit-btn').textContent   = mode === 'register' ? 'Create Account' : 'Sign In';
+    document.getElementById('bbb-password').autocomplete   = mode === 'register' ? 'new-password' : 'current-password';
+    document.getElementById('bbb-toggle-row').innerHTML    = mode === 'register'
+      ? 'Already have an account? <a onclick="toggleAuthMode()">Sign in</a>'
+      : 'Don\'t have an account? <a onclick="toggleAuthMode()">Register</a>';
+  }
+
+  function toggleAuthMode() {
+    const current = document.getElementById('bbb-auth-form').dataset.mode;
+    _applyAuthMode(current === 'register' ? 'login' : 'register');
+    document.getElementById('bbb-error').textContent = '';
+  }
+
+  // ── Form submit → register or login ───────────────────────────
+  async function handleAuth(e) {
+    e.preventDefault();
+    const mode     = document.getElementById('bbb-auth-form').dataset.mode;
+    const email    = document.getElementById('bbb-email').value.trim();
+    const password = document.getElementById('bbb-password').value;
+    const fullName = document.getElementById('bbb-name').value.trim();
+    const errEl    = document.getElementById('bbb-error');
+    const btn      = document.getElementById('bbb-submit-btn');
+
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="bbb-spinner"></span>' + (mode === 'register' ? 'Creating account…' : 'Signing in…');
+
+    try {
+      let token;
+
+      if (mode === 'register') {
+        const regRes = await fetch(`${BBB_API}/api/v1/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, full_name: fullName || undefined }),
+        });
+        if (!regRes.ok) {
+          const err = await regRes.json().catch(() => ({}));
+          // 409 = account exists → switch to login
+          if (regRes.status === 409) {
+            errEl.textContent = 'Account already exists — sign in instead.';
+            _applyAuthMode('login');
+            return;
+          }
+          throw new Error(err.detail || 'Registration failed. Please try again.');
+        }
+        // Auto-login after register
+        const loginRes = await fetch(`${BBB_API}/api/v1/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        if (!loginRes.ok) throw new Error('Account created — please sign in.');
+        token = (await loginRes.json()).access_token;
+
+      } else {
+        const loginRes = await fetch(`${BBB_API}/api/v1/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        if (!loginRes.ok) {
+          const err = await loginRes.json().catch(() => ({}));
+          throw new Error(err.detail || 'Invalid email or password.');
+        }
+        token = (await loginRes.json()).access_token;
+      }
+
+      if (token) localStorage.setItem('bbb_access_token', token);
+      closeModal();
+      await _executeIntent(email, token);
+
+    } catch (err) {
+      errEl.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = document.getElementById('bbb-auth-form').dataset.mode === 'register' ? 'Create Account' : 'Sign In';
+    }
+  }
+
+  // ── Post-auth intent execution ─────────────────────────────────
+  async function _executeIntent(email, token) {
+    if (_bbbIntent === 'trial') {
+      showToast('Redirecting to checkout…');
+      try {
+        const res = await fetch(`${BBB_API}/api/v1/billing/checkout-public`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+        if (data.checkout_url) { window.location.href = data.checkout_url; return; }
+        throw new Error(data.detail || 'Checkout unavailable. Please try again.');
+      } catch (err) {
+        showToast('⚠ ' + err.message);
+      }
+      return;
+    }
+
+    if (_bbbIntent === 'bank_link') {
+      showToast('Loading bank connection…');
+      try {
+        const ltRes = await fetch(`${BBB_API}/api/v1/banks/link-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        });
+        if (!ltRes.ok) throw new Error('Could not start bank connection.');
+        const { link_token } = await ltRes.json();
+
+        const handler = Plaid.create({
+          token: link_token,
+          onSuccess: async (public_token, metadata) => {
+            showToast('Saving your bank…');
+            await fetch(`${BBB_API}/api/v1/banks/exchange`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({
+                public_token,
+                institution_name: metadata?.institution?.name || '',
+                institution_id:   metadata?.institution?.institution_id || '',
+              }),
+            });
+            window.location.href = 'command-center.html';
+          },
+          onExit: (err) => {
+            if (err) showToast('Bank connection cancelled.');
+            else window.location.href = 'command-center.html';
+          },
+        });
+        handler.open();
+      } catch (err) {
+        showToast('⚠ ' + err.message);
+      }
+      return;
+    }
+
+    // 'free' → straight to Command Center
+    window.location.href = 'command-center.html';
+  }
 </script>
 </body>
 </html>
