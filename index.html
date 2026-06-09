@@ -741,6 +741,52 @@
     <div class="bbb-toggle" id="bbb-toggle-row">
       Already have an account? <a onclick="toggleAuthMode()">Sign in</a>
     </div>
+
+    <!-- KYC pre-screen step — shown after auth, before funnel continues -->
+    <form id="bbb-kyc-form" onsubmit="handleKyc(event)" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="bbb-field">
+          <label for="kyc-first">First Name</label>
+          <input type="text" id="kyc-first" placeholder="Jane" required autocomplete="given-name" />
+        </div>
+        <div class="bbb-field">
+          <label for="kyc-last">Last Name</label>
+          <input type="text" id="kyc-last" placeholder="Smith" required autocomplete="family-name" />
+        </div>
+      </div>
+      <div class="bbb-field">
+        <label for="kyc-dob">Date of Birth</label>
+        <input type="date" id="kyc-dob" required autocomplete="bday" />
+      </div>
+      <div class="bbb-field">
+        <label for="kyc-phone">Phone</label>
+        <input type="tel" id="kyc-phone" placeholder="5551234567" required autocomplete="tel" />
+      </div>
+      <div class="bbb-field">
+        <label for="kyc-ssn">Social Security Number</label>
+        <input type="password" id="kyc-ssn" placeholder="9 digits, no dashes" required minlength="9" maxlength="9" autocomplete="off" inputmode="numeric" />
+      </div>
+      <div class="bbb-field">
+        <label for="kyc-address">Street Address</label>
+        <input type="text" id="kyc-address" placeholder="123 Main St" required autocomplete="street-address" />
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px">
+        <div class="bbb-field">
+          <label for="kyc-city">City</label>
+          <input type="text" id="kyc-city" placeholder="Austin" required autocomplete="address-level2" />
+        </div>
+        <div class="bbb-field">
+          <label for="kyc-state">State</label>
+          <input type="text" id="kyc-state" placeholder="TX" required maxlength="2" autocomplete="address-level1" />
+        </div>
+        <div class="bbb-field">
+          <label for="kyc-zip">ZIP</label>
+          <input type="text" id="kyc-zip" placeholder="78701" required minlength="5" maxlength="5" inputmode="numeric" autocomplete="postal-code" />
+        </div>
+      </div>
+      <div class="bbb-error" id="kyc-error"></div>
+      <button type="submit" class="grad-btn bbb-submit" id="kyc-submit-btn">Continue →</button>
+    </form>
   </div>
 </div>
 
@@ -813,6 +859,62 @@
   const _isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
   const BBB_API = (window.BBB_API_BASE || (_isLocal ? 'http://localhost:8000' : 'https://bigbb-api-prod.onrender.com')).replace(/\/$/, '');
   let _bbbIntent = 'free';
+  let _bbbToken = localStorage.getItem('bbb_access_token') || null;
+  let _kycToken = null;
+  let _kycEmail = null;
+
+  function _csrfHeaders(extra = {}) {
+    const token = document.cookie.split('; ').find(r => r.startsWith('csrf_token='))?.split('=')[1] || '';
+    return { 'Content-Type': 'application/json', 'X-CSRF-Token': token, ...extra };
+  }
+
+  // ── KYC pre-screen step ────────────────────────────────────────
+  function _showKycStep(email, token) {
+    _kycToken = token;
+    _kycEmail = email;
+    document.getElementById('bbb-auth-form').style.display   = 'none';
+    document.getElementById('bbb-toggle-row').style.display  = 'none';
+    document.getElementById('bbb-modal-title-text').textContent = 'Verify Your Identity';
+    document.getElementById('bbb-modal-sub').textContent        = 'Required for compliance — takes 30 seconds';
+    document.getElementById('bbb-kyc-form').style.display    = '';
+    setTimeout(() => document.getElementById('kyc-first').focus(), 50);
+  }
+
+  async function handleKyc(e) {
+    e.preventDefault();
+    const errEl = document.getElementById('kyc-error');
+    const btn   = document.getElementById('kyc-submit-btn');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="bbb-spinner"></span>Verifying…';
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/kyc/pii`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_kycToken}` }),
+        body: JSON.stringify({
+          first_name: document.getElementById('kyc-first').value.trim(),
+          last_name:  document.getElementById('kyc-last').value.trim(),
+          dob:        document.getElementById('kyc-dob').value,
+          phone:      document.getElementById('kyc-phone').value.trim().replace(/\D/g, ''),
+          ssn:        document.getElementById('kyc-ssn').value.trim(),
+          address:    document.getElementById('kyc-address').value.trim(),
+          city:       document.getElementById('kyc-city').value.trim(),
+          state:      document.getElementById('kyc-state').value.trim().toUpperCase(),
+          zip:        document.getElementById('kyc-zip').value.trim(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Identity verification failed. Please try again.');
+      if (data.session_id) localStorage.setItem('bbb_kyc_session', data.session_id);
+      closeModal();
+      await _executeIntent(_kycEmail, _kycToken);
+    } catch (err) {
+      errEl.textContent = err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Continue →';
+    }
+  }
 
   // ── Modal open/close ───────────────────────────────────────────
   function openModal(intent) {
@@ -834,6 +936,8 @@
     _applyAuthMode('register');
     document.getElementById('bbb-error').textContent = '';
     form.reset();
+    document.getElementById('bbb-kyc-form').style.display  = 'none';
+    document.getElementById('bbb-toggle-row').style.display = '';
     document.getElementById('bbb-modal').style.display = 'flex';
     setTimeout(() => document.getElementById('bbb-email').focus(), 50);
   }
@@ -885,7 +989,7 @@
       if (mode === 'register') {
         const regRes = await fetch(`${BBB_API}/api/v1/auth/register`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: _csrfHeaders(),
           body: JSON.stringify({ email, password, full_name: fullName || undefined }),
         });
         if (!regRes.ok) {
@@ -901,7 +1005,7 @@
         // Auto-login after register
         const loginRes = await fetch(`${BBB_API}/api/v1/auth/login`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: _csrfHeaders(),
           body: JSON.stringify({ email, password }),
         });
         if (!loginRes.ok) throw new Error('Account created — please sign in.');
@@ -910,7 +1014,7 @@
       } else {
         const loginRes = await fetch(`${BBB_API}/api/v1/auth/login`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: _csrfHeaders(),
           body: JSON.stringify({ email, password }),
         });
         if (!loginRes.ok) {
@@ -921,8 +1025,8 @@
       }
 
       if (token) localStorage.setItem('bbb_access_token', token);
-      closeModal();
-      await _executeIntent(email, token);
+      _bbbToken = token;
+      _showKycStep(email, token);
 
     } catch (err) {
       errEl.textContent = err.message;
@@ -939,7 +1043,7 @@
       try {
         const res = await fetch(`${BBB_API}/api/v1/billing/checkout-public`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: _csrfHeaders(),
           body: JSON.stringify({ email }),
         });
         const data = await res.json();
@@ -956,7 +1060,7 @@
       try {
         const ltRes = await fetch(`${BBB_API}/api/v1/banks/link-token`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          headers: _csrfHeaders({ 'Authorization': `Bearer ${token}` }),
         });
         if (!ltRes.ok) throw new Error('Could not start bank connection.');
         const { link_token } = await ltRes.json();
@@ -965,16 +1069,30 @@
           token: link_token,
           onSuccess: async (public_token, metadata) => {
             showToast('Saving your bank…');
-            await fetch(`${BBB_API}/api/v1/banks/exchange`, {
+            const exchRes = await fetch(`${BBB_API}/api/v1/banks/exchange`, {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              headers: _csrfHeaders({ 'Authorization': `Bearer ${token}` }),
               body: JSON.stringify({
                 public_token,
                 institution_name: metadata?.institution?.name || '',
                 institution_id:   metadata?.institution?.institution_id || '',
               }),
             });
-            window.location.href = 'command-center.html';
+            if (!exchRes.ok) { showToast('⚠ Bank save failed. Please try again.'); return; }
+
+            // Fetch ranked opportunities and cache locally for Command Center
+            showToast('Bank linked! Finding best offers…');
+            try {
+              const oppRes = await fetch(`${BBB_API}/api/v1/campaigns/opportunities`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+              });
+              if (oppRes.ok) {
+                const opps = await oppRes.json();
+                localStorage.setItem('bbb_opportunities', JSON.stringify(opps));
+              }
+            } catch (_) {}
+
+            window.location.href = 'command-center.html?bank_linked=true';
           },
           onExit: (err) => {
             if (err) showToast('Bank connection cancelled.');
