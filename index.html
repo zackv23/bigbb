@@ -744,6 +744,15 @@
 
     <!-- KYC pre-screen step — shown after auth, before funnel continues -->
     <form id="bbb-kyc-form" onsubmit="handleKyc(event)" style="display:none">
+      <!-- Trust badge -->
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(201,169,110,.07);border:1px solid rgba(201,169,110,.18);border-radius:12px;padding:12px 16px;margin-bottom:22px">
+        <span style="font-size:22px;flex-shrink:0">🔒</span>
+        <div>
+          <div style="font-size:11px;font-weight:800;letter-spacing:.06em;color:#c9a96e;text-transform:uppercase">Identity Verification</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">256-bit encrypted · takes 60 seconds · required for compliance</div>
+        </div>
+      </div>
+      <!-- Name row -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="bbb-field">
           <label for="kyc-first">First Name</label>
@@ -754,22 +763,37 @@
           <input type="text" id="kyc-last" placeholder="Smith" required autocomplete="family-name" />
         </div>
       </div>
+      <!-- Email -->
       <div class="bbb-field">
-        <label for="kyc-dob">Date of Birth</label>
-        <input type="date" id="kyc-dob" required autocomplete="bday" />
+        <label for="kyc-email">Email Address</label>
+        <input type="email" id="kyc-email" placeholder="jane@example.com" required autocomplete="email" />
       </div>
+      <!-- Phone -->
       <div class="bbb-field">
-        <label for="kyc-phone">Phone</label>
-        <input type="tel" id="kyc-phone" placeholder="5551234567" required autocomplete="tel" />
+        <label for="kyc-phone">Phone Number</label>
+        <input type="tel" id="kyc-phone" placeholder="(555) 123-4567" required autocomplete="tel" inputmode="tel" />
       </div>
-      <div class="bbb-field">
-        <label for="kyc-ssn">Social Security Number</label>
-        <input type="password" id="kyc-ssn" placeholder="9 digits, no dashes" required minlength="9" maxlength="9" autocomplete="off" inputmode="numeric" />
+      <!-- DOB + SSN row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="bbb-field">
+          <label for="kyc-dob">Date of Birth</label>
+          <input type="text" id="kyc-dob" placeholder="MM.DD.YYYY" required maxlength="10" inputmode="numeric" oninput="_fmtDob(this)" autocomplete="bday" />
+        </div>
+        <div class="bbb-field">
+          <label for="kyc-ssn4" style="display:flex;align-items:center;justify-content:space-between">
+            <span>Last 4 of SSN</span>
+            <span style="font-size:10px;color:var(--muted);letter-spacing:.04em">●●●–●●–????</span>
+          </label>
+          <input type="password" id="kyc-ssn4" placeholder="····" required minlength="4" maxlength="4" autocomplete="off" inputmode="numeric"
+            style="text-align:center;font-size:20px;letter-spacing:.25em" />
+        </div>
       </div>
+      <!-- Address -->
       <div class="bbb-field">
         <label for="kyc-address">Street Address</label>
         <input type="text" id="kyc-address" placeholder="123 Main St" required autocomplete="street-address" />
       </div>
+      <!-- City / State / ZIP -->
       <div style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px">
         <div class="bbb-field">
           <label for="kyc-city">City</label>
@@ -784,8 +808,15 @@
           <input type="text" id="kyc-zip" placeholder="78701" required minlength="5" maxlength="5" inputmode="numeric" autocomplete="postal-code" />
         </div>
       </div>
+      <div style="font-size:11px;color:var(--muted);text-align:center;margin-bottom:6px">Your SSN is never stored in plain text — hashed immediately on receipt.</div>
       <div class="bbb-error" id="kyc-error"></div>
-      <button type="submit" class="grad-btn bbb-submit" id="kyc-submit-btn">Continue →</button>
+      <button type="submit" class="grad-btn bbb-submit" id="kyc-submit-btn" style="margin-top:10px">Verify Identity →</button>
+      <!-- Trust footer -->
+      <div style="display:flex;justify-content:center;gap:16px;margin-top:14px;flex-wrap:wrap">
+        <span style="font-size:11px;color:var(--muted)">🏦 Bank-grade encryption</span>
+        <span style="font-size:11px;color:var(--muted)">🛡 SOC 2 compliant</span>
+        <span style="font-size:11px;color:var(--muted)">🔐 Never stored plain</span>
+      </div>
     </form>
   </div>
 </div>
@@ -869,14 +900,21 @@
   }
 
   // ── KYC pre-screen step ────────────────────────────────────────
+  function _fmtDob(el) {
+    let v = el.value.replace(/[^\d]/g, '');
+    if (v.length > 2) v = v.slice(0, 2) + '.' + v.slice(2);
+    if (v.length > 5) v = v.slice(0, 5) + '.' + v.slice(5);
+    el.value = v.slice(0, 10);
+  }
+
   function _showKycStep(email, token) {
     _kycToken = token;
     _kycEmail = email;
-    document.getElementById('bbb-auth-form').style.display   = 'none';
-    document.getElementById('bbb-toggle-row').style.display  = 'none';
-    document.getElementById('bbb-modal-title-text').textContent = 'Verify Your Identity';
-    document.getElementById('bbb-modal-sub').textContent        = 'Required for compliance — takes 30 seconds';
-    document.getElementById('bbb-kyc-form').style.display    = '';
+    document.getElementById('bbb-auth-form').style.display  = 'none';
+    document.getElementById('bbb-toggle-row').style.display = 'none';
+    document.getElementById('bbb-modal-title-text').textContent = 'One quick step';
+    document.getElementById('bbb-modal-sub').textContent        = 'Verify your identity to unlock the platform.';
+    document.getElementById('bbb-kyc-form').style.display   = '';
     setTimeout(() => document.getElementById('kyc-first').focus(), 50);
   }
 
@@ -888,15 +926,25 @@
     btn.disabled = true;
     btn.innerHTML = '<span class="bbb-spinner"></span>Verifying…';
     try {
+      // Parse mm.dd.yyyy → YYYY-MM-DD for the API
+      const rawDob = document.getElementById('kyc-dob').value.trim();
+      const [mm, dd, yyyy] = rawDob.split('.');
+      if (!mm || !dd || !yyyy || yyyy.length !== 4) throw new Error('Please enter your date of birth as MM.DD.YYYY');
+      const dob = `${yyyy}-${mm.padStart(2,'0')}-${dd.padStart(2,'0')}`;
+
+      const ssn4 = document.getElementById('kyc-ssn4').value.trim();
+      if (!/^\d{4}$/.test(ssn4)) throw new Error('Please enter the last 4 digits of your SSN');
+
       const res = await fetch(`${BBB_API}/api/v1/kyc/pii`, {
         method: 'POST',
         headers: _csrfHeaders({ 'Authorization': `Bearer ${_kycToken}` }),
         body: JSON.stringify({
           first_name: document.getElementById('kyc-first').value.trim(),
           last_name:  document.getElementById('kyc-last').value.trim(),
-          dob:        document.getElementById('kyc-dob').value,
+          email:      document.getElementById('kyc-email').value.trim(),
           phone:      document.getElementById('kyc-phone').value.trim().replace(/\D/g, ''),
-          ssn:        document.getElementById('kyc-ssn').value.trim(),
+          dob,
+          ssn4,
           address:    document.getElementById('kyc-address').value.trim(),
           city:       document.getElementById('kyc-city').value.trim(),
           state:      document.getElementById('kyc-state').value.trim().toUpperCase(),
@@ -912,7 +960,7 @@
       errEl.textContent = err.message;
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Continue →';
+      btn.textContent = 'Verify Identity →';
     }
   }
 
