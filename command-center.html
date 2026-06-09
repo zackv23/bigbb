@@ -347,9 +347,9 @@
     <button class="nav-item active" onclick="showPage('overview', this)">
       <span class="icon">🏠</span> Overview
     </button>
-    <button class="nav-item" data-tier="pro" onclick="showPage('offers', this)">
+    <button class="nav-item" onclick="showPage('offers', this)">
       <span class="icon">🏦</span> Live Offers
-      <span class="badge-count" id="offers-count">6</span>
+      <span class="badge-count">6</span>
     </button>
     <button class="nav-item" onclick="showPage('subscription', this)">
       <span class="icon">💳</span> Subscription
@@ -359,28 +359,25 @@
     </button>
 
     <div class="nav-section-label" style="margin-top:12px">Tools</div>
-    <button class="nav-item" data-tier="pro" onclick="showPage('scheduler', this)">
+    <button class="nav-item" onclick="showPage('scheduler', this)">
       <span class="icon">⚡</span> Autopay Scheduler
     </button>
-    <button class="nav-item" data-tier="pro" onclick="showPage('monitor', this)">
+    <button class="nav-item" onclick="showPage('monitor', this)">
       <span class="icon">🔍</span> Policy Monitor
       <span class="badge-count" style="background:#eab308">2</span>
     </button>
-    <button class="nav-item" data-tier="pro" onclick="showPage('agent', this)">
+    <button class="nav-item" onclick="showPage('agent', this)">
       <span class="icon">🤖</span> AI Agent
     </button>
-    <button class="nav-item" onclick="showPage('roic', this)">
-      <span class="icon">📊</span> ROIC Calculator
-    </button>
-    <button class="nav-item" data-tier="pro" onclick="showPage('files', this)">
+    <button class="nav-item" onclick="showPage('files', this)">
       <span class="icon">📁</span> Documents
     </button>
 
     <div class="nav-section-label" style="margin-top:12px">Account</div>
-    <button class="nav-item" onclick="showPage('settings', this)">
+    <button class="nav-item" onclick="showToast('Opening settings…')">
       <span class="icon">⚙️</span> Settings
     </button>
-    <button class="nav-item" onclick="window.location.href='index.html'">
+    <button class="nav-item" onclick="showToast('Visit BigBankBonus.com')">
       <span class="icon">↗</span> Back to Site
     </button>
   </nav>
@@ -404,7 +401,7 @@
     </div>
     <div class="topbar-right">
       <span class="topbar-time" id="live-time"></span>
-      <button class="btn btn-ghost" onclick="refreshDashboard()">↺ Refresh</button>
+      <button class="btn btn-ghost" onclick="showToast('Refreshing data…')">↺ Refresh</button>
       <button class="btn btn-grad" onclick="showPage('offers', document.querySelector(\'.nav-item:nth-child(3)\'))">
         + Add Offer
       </button>
@@ -606,37 +603,13 @@
         <h2>Live Offers — $400+ Only</h2>
         <div class="section-sub">Personalized for your profile · Chase excluded · 217 total tracked</div>
       </div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-ghost" id="btn-2nd-chance"
-          onclick="toggle2ndChance()"
-          style="border-color:rgba(251,191,36,.3);color:#fbbf24">
-          ⭐ 2nd Chance Banks
-        </button>
+      <div style="display:flex;gap:8px">
         <button class="btn btn-ghost" onclick="showToast('Refreshing offer feed from DoC…')">↺ Refresh</button>
       </div>
     </div>
 
-    <!-- Standard offer grid -->
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px" id="offers-grid">
       <!-- Offer cards injected by JS -->
-    </div>
-
-    <!-- ── 2nd Chance Partners panel ──────────────────────────── -->
-    <div id="second-chance-panel" style="display:none;margin-top:8px">
-      <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.2);border-radius:14px;margin-bottom:20px">
-        <span style="font-size:22px">⭐</span>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:#fbbf24;margin-bottom:2px">2nd Chance Banking Partners</div>
-          <div style="font-size:13px;color:var(--muted);line-height:1.5">
-            These banks, credit unions, and fintechs <strong style="color:var(--text)">do not use ChexSystems or EWS</strong> for account approval.
-            Everyone qualifies — score threshold: <strong style="color:#fbbf24">70 / 100</strong> (cutoff 75 − 5).
-          </div>
-        </div>
-      </div>
-
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px" id="second-chance-grid">
-        <!-- Injected by JS -->
-      </div>
     </div>
   </div>
 
@@ -766,7 +739,7 @@
         <h2>Linked Banks</h2>
         <div class="section-sub">Connected via Plaid · Read-only access · Bank-grade security</div>
       </div>
-      <button class="btn btn-grad" onclick="openPlaidLink()">+ Link Bank</button>
+      <button class="btn btn-grad" onclick="showToast('Opening Plaid Link…')">+ Link Bank</button>
     </div>
 
     <div class="grid-2">
@@ -845,7 +818,7 @@
       <div style="font-size:32px;margin-bottom:12px">🏦</div>
       <div style="font-size:16px;font-weight:700;margin-bottom:8px">Link another bank</div>
       <p style="font-size:13px;color:var(--muted);max-width:380px;margin:0 auto 20px;line-height:1.6">Connect additional banks to track balances and unlock the autopay scheduler for more offers simultaneously.</p>
-      <button class="btn btn-grad" onclick="openPlaidLink()">+ Connect Bank via Plaid</button>
+      <button class="btn btn-grad" onclick="showToast('Opening Plaid Link…')">+ Connect Bank via Plaid</button>
     </div>
   </div>
 
@@ -1119,403 +1092,20 @@
     </div>
   </div>
 
-  <!-- ══════════════════════════════════════════════════════
-       PAGE: ROIC Calculator  (FREE)
-  ══════════════════════════════════════════════════════════ -->
-  <div class="page" id="page-roic">
-    <div class="section-hdr">
-      <div>
-        <h2>ROIC Calculator</h2>
-        <div class="section-sub">Return on invested capital &amp; APY equivalent for any bank bonus offer</div>
-      </div>
-      <span class="status-badge green" style="padding:6px 14px"><span class="dot"></span>Free</span>
-    </div>
-
-    <!-- Input card -->
-    <div class="card" style="max-width:600px">
-      <div class="card-title">Offer Details</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600">Bonus Amount ($)</div>
-          <input id="roic-bonus" type="number" value="400" min="0"
-            style="width:100%;background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:18px;font-weight:700;font-family:inherit;color:var(--text);outline:none"
-            oninput="calcROIC()" onfocus="this.style.borderColor='rgba(225,48,108,.5)'" onblur="this.style.borderColor='var(--border)'" />
-        </div>
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600">Required Deposit / DD ($)</div>
-          <input id="roic-deposit" type="number" value="1000" min="1"
-            style="width:100%;background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:18px;font-weight:700;font-family:inherit;color:var(--text);outline:none"
-            oninput="calcROIC()" onfocus="this.style.borderColor='rgba(225,48,108,.5)'" onblur="this.style.borderColor='var(--border)'" />
-        </div>
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600">Days to Earn Bonus</div>
-          <input id="roic-days" type="number" value="90" min="1"
-            style="width:100%;background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:18px;font-weight:700;font-family:inherit;color:var(--text);outline:none"
-            oninput="calcROIC()" onfocus="this.style.borderColor='rgba(225,48,108,.5)'" onblur="this.style.borderColor='var(--border)'" />
-        </div>
-        <div>
-          <div style="font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600">Monthly Fee ($ waived = 0)</div>
-          <input id="roic-fee" type="number" value="0" min="0"
-            style="width:100%;background:var(--dark2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:18px;font-weight:700;font-family:inherit;color:var(--text);outline:none"
-            oninput="calcROIC()" onfocus="this.style.borderColor='rgba(225,48,108,.5)'" onblur="this.style.borderColor='var(--border)'" />
-        </div>
-      </div>
-
-      <!-- Results -->
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:8px" id="roic-results">
-        <div class="stat-card" style="text-align:center">
-          <div class="stat-label">ROIC</div>
-          <div class="stat-val grad-text" id="roic-pct">40.0%</div>
-          <div class="stat-sub">Return on capital</div>
-        </div>
-        <div class="stat-card" style="text-align:center">
-          <div class="stat-label">APY Equivalent</div>
-          <div class="stat-val grad-text" id="roic-apy">162.2%</div>
-          <div class="stat-sub">Annualised return</div>
-        </div>
-        <div class="stat-card" style="text-align:center">
-          <div class="stat-label">Net Profit</div>
-          <div class="stat-val" id="roic-net" style="color:#4ade80">$400</div>
-          <div class="stat-sub">After any fees</div>
-        </div>
-      </div>
-
-      <div style="margin-top:16px;padding:14px;background:var(--dark2);border-radius:12px;border:1px solid var(--border)">
-        <div style="font-size:12px;color:var(--muted);font-weight:600;margin-bottom:6px">How it's calculated</div>
-        <div style="font-size:12px;color:var(--muted);line-height:1.7" id="roic-formula">
-          ROIC = $400 / $1,000 = <strong style="color:var(--text)">40.0%</strong> &nbsp;·&nbsp;
-          APY = (40.0% / 90 days) × 365 = <strong style="color:var(--text)">162.2%</strong> &nbsp;·&nbsp;
-          Net = $400 − $0 fees = <strong style="color:#4ade80">$400</strong>
-        </div>
-      </div>
-    </div>
-
-    <!-- Comparison table -->
-    <div class="card" style="max-width:600px">
-      <div class="card-title">Quick Compare — Common Offers</div>
-      <table class="data-table" id="roic-compare-table">
-        <thead>
-          <tr>
-            <th>Bank</th><th>Bonus</th><th>DD Req</th><th>Days</th><th>ROIC</th><th>APY</th>
-          </tr>
-        </thead>
-        <tbody id="roic-compare-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <!-- ══════════════════════════════════════════════════════
-       PAGE: Settings
-  ══════════════════════════════════════════════════════════ -->
-  <div class="page" id="page-settings">
-    <div class="section-hdr">
-      <div>
-        <h2>Settings</h2>
-        <div class="section-sub">Account preferences, security, and integrations</div>
-      </div>
-      <button class="btn btn-ghost" onclick="localStorage.removeItem('bbb_access_token');window.location.reload()">Sign Out</button>
-    </div>
-
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">Profile</div>
-        <div style="display:flex;flex-direction:column;gap:12px">
-          <div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Display Name</div>
-            <input type="text" value="James R." style="width:100%;background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;color:var(--text);outline:none" />
-          </div>
-          <div>
-            <div style="font-size:12px;color:var(--muted);margin-bottom:4px">Email</div>
-            <input type="email" placeholder="your@email.com" style="width:100%;background:var(--dark2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;font-size:13px;font-family:inherit;color:var(--text);outline:none" />
-          </div>
-          <button class="btn btn-grad" style="align-self:flex-start" onclick="showToast('Profile saved ✓')">Save Changes</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Security</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border)">
-            <div>
-              <div style="font-size:13px;font-weight:600">Two-Factor Auth</div>
-              <div style="font-size:11px;color:var(--muted)">TOTP via authenticator app</div>
-            </div>
-            <span class="status-badge yellow"><span class="dot"></span>Off</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border)">
-            <div>
-              <div style="font-size:13px;font-weight:600">Change Password</div>
-              <div style="font-size:11px;color:var(--muted)">Last changed 30 days ago</div>
-            </div>
-            <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px" onclick="showToast('Password reset email sent')">Reset</button>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border)">
-            <div>
-              <div style="font-size:13px;font-weight:600">Active Sessions</div>
-              <div style="font-size:11px;color:var(--muted)">1 session active</div>
-            </div>
-            <button class="btn btn-ghost" style="font-size:12px;padding:6px 12px;color:#f87171" onclick="localStorage.removeItem('bbb_access_token');window.location.reload()">Sign Out All</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Notifications</div>
-        <div style="display:flex;flex-direction:column;gap:10px">
-          <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer">
-            <div>
-              <div style="font-size:13px;font-weight:600">Policy Monitor Alerts</div>
-              <div style="font-size:11px;color:var(--muted)">Instant email when bank terms change</div>
-            </div>
-            <input type="checkbox" checked style="accent-color:#E1306C;width:16px;height:16px" />
-          </label>
-          <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-top:1px solid var(--border);padding-top:10px">
-            <div>
-              <div style="font-size:13px;font-weight:600">Bonus Posted Alerts</div>
-              <div style="font-size:11px;color:var(--muted)">Email when a bonus credits to your account</div>
-            </div>
-            <input type="checkbox" checked style="accent-color:#E1306C;width:16px;height:16px" />
-          </label>
-          <label style="display:flex;justify-content:space-between;align-items:center;cursor:pointer;border-top:1px solid var(--border);padding-top:10px">
-            <div>
-              <div style="font-size:13px;font-weight:600">Autopay Cycle Reminders</div>
-              <div style="font-size:11px;color:var(--muted)">SMS reminder 24h before each ACH cycle</div>
-            </div>
-            <input type="checkbox" style="accent-color:#E1306C;width:16px;height:16px" />
-          </label>
-        </div>
-        <button class="btn btn-grad" style="margin-top:16px;align-self:flex-start" onclick="showToast('Notification preferences saved ✓')">Save</button>
-      </div>
-
-      <div class="card">
-        <div class="card-title">Danger Zone</div>
-        <div style="padding:16px;background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:12px">
-          <div style="font-size:14px;font-weight:700;color:#f87171;margin-bottom:6px">Delete Account</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:14px">Permanently deletes your account, all linked banks, and offer history. This cannot be undone.</p>
-          <button class="btn" style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#f87171;font-size:13px" onclick="showToast('Contact support@bigbankbonus.com to delete your account')">Request Deletion</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
 </main>
-
-<!-- Upgrade overlay (shown when free user hits a pro page) -->
-<div id="upgrade-overlay" style="display:none;position:fixed;inset:0;z-index:400;background:rgba(6,9,26,.92);backdrop-filter:blur(14px);align-items:center;justify-content:center;padding:24px">
-  <div style="background:#111827;border:1px solid #1f2a40;border-radius:20px;padding:40px 36px;width:100%;max-width:440px;text-align:center;position:relative">
-    <button onclick="closeUpgradeOverlay()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#64748b;font-size:20px;cursor:pointer">✕</button>
-    <div style="font-size:36px;margin-bottom:16px" id="upgrade-icon">🔒</div>
-    <h2 style="font-size:22px;font-weight:800;margin-bottom:8px" id="upgrade-title">Pro Feature</h2>
-    <p style="font-size:14px;color:#94a3b8;line-height:1.65;margin-bottom:24px" id="upgrade-body">
-      Upgrade to Pro to unlock this feature.
-    </p>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px;text-align:left">
-      <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#cbd5e1"><span style="color:#4ade80">✓</span> $400+ Personalized Offer Feed</div>
-      <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#cbd5e1"><span style="color:#4ade80">✓</span> AI Bonus Agent (GPT-4o)</div>
-      <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#cbd5e1"><span style="color:#4ade80">✓</span> Autopay DD Scheduler</div>
-      <div style="display:flex;align-items:center;gap:10px;font-size:13px;color:#cbd5e1"><span style="color:#4ade80">✓</span> EWS &amp; ChexSystems Monitor</div>
-    </div>
-    <button onclick="startProTrial()" style="width:100%;background:linear-gradient(135deg,#833AB4,#E1306C,#F77737);border:none;color:#fff;font-weight:700;font-size:15px;padding:14px;border-radius:12px;cursor:pointer;font-family:inherit;margin-bottom:10px">
-      Start 3-Day Free Trial — $49/mo →
-    </button>
-    <p style="font-size:12px;color:#475569">No credit card required · Cancel before day 4 to pay nothing</p>
-  </div>
-</div>
-
-<!-- Auth Gate -->
-<div id="auth-gate" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(6,9,26,.97);backdrop-filter:blur(16px);flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center">
-  <div style="width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#833AB4,#E1306C,#F77737);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:#fff;margin:0 auto 20px">B</div>
-  <h2 style="font-size:26px;font-weight:800;margin-bottom:8px;color:#f1f5f9">Sign in to BigBankBonus</h2>
-  <p style="color:#94a3b8;font-size:14px;margin-bottom:28px;max-width:340px">Access your Command Center to track offers, manage banks, and run your bonus automation.</p>
-  <div style="background:#111827;border:1px solid #1f2a40;border-radius:16px;padding:28px;width:100%;max-width:360px">
-    <button id="gate-google-btn" onclick="gateSignInWithGoogle()"
-      style="width:100%;display:flex;align-items:center;justify-content:center;gap:12px;padding:13px 20px;background:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;color:#1a1a1a;cursor:pointer;font-family:inherit;transition:box-shadow .2s,transform .15s;margin-bottom:16px">
-      <svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
-        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-      </svg>
-      Continue with Google
-    </button>
-    <p style="font-size:12px;color:#475569">Dev mode: <button onclick="bypassAuth()" style="background:none;border:none;color:#60a5fa;cursor:pointer;font-family:inherit;font-size:12px;padding:0;text-decoration:underline">enter demo dashboard</button></p>
-  </div>
-</div>
 
 <!-- Toast -->
 <div id="toast"></div>
 
 <script>
+  // ── Backend config ─────────────────────────────────────────────
   const _isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-  const API_BASE = _isLocal ? 'http://localhost:8000' : 'https://bigbb-api-prod.onrender.com';
+  const BBB_API   = (window.BBB_API_BASE || (_isLocal ? 'http://localhost:8000' : 'https://bigbb-api-prod.onrender.com')).replace(/\/$/, '');
+  const _bbbToken = localStorage.getItem('bbb_access_token') || null;
 
-  // ── Tier gating ────────────────────────────────────────────────
-  const PAID_PAGES = new Set(['offers', 'scheduler', 'monitor', 'agent', 'files']);
-
-  const PAID_PAGE_META = {
-    offers:    { icon: '🏦', title: '$400+ Offer Feed',      body: 'See every live bank bonus offer filtered to your exact profile — sorted by ROIC. Banks you already have are automatically hidden.' },
-    scheduler: { icon: '⚡', title: 'Autopay DD Scheduler',  body: 'Automate the direct deposit requirements for each offer with a 91-day ACH push/pull cycle. Set it once — bonuses post automatically.' },
-    monitor:   { icon: '🔍', title: 'Policy Monitor',        body: '1,004+ endpoints checked every 6 hours — CFPB, Reddit, DoC, bank newsrooms. Instant alert when a bank changes their ChexSystems or EWS policy.' },
-    agent:     { icon: '🤖', title: 'AI Bonus Agent',        body: 'GPT-4o powered assistant that knows your linked banks, capital, and active offers. Ask it which 3 banks to open next for maximum ROIC.' },
-    files:     { icon: '📁', title: 'Documents',             body: 'Securely store and access your bank statements, bonus confirmations, and identity documents in one place.' },
-  };
-
-  function isPaid() {
-    const status = localStorage.getItem('bbb_subscription_status');
-    return status === 'active' || status === 'trialing';
-  }
-
-  function updateNavTierBadges() {
-    document.querySelectorAll('[data-tier="pro"]').forEach(btn => {
-      // Remove any existing lock badge
-      btn.querySelectorAll('.tier-badge').forEach(b => b.remove());
-      if (!isPaid()) {
-        const badge = document.createElement('span');
-        badge.className = 'tier-badge';
-        badge.style.cssText = 'margin-left:auto;font-size:9px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(225,48,108,.12);color:#f472b6;border:1px solid rgba(225,48,108,.2);letter-spacing:.04em;flex-shrink:0';
-        badge.textContent = 'PRO';
-        btn.appendChild(badge);
-      }
-    });
-  }
-
-  // ── Upgrade overlay ─────────────────────────────────────────────
-  function showUpgradeOverlay(pageId) {
-    const meta = PAID_PAGE_META[pageId] || { icon: '🔒', title: 'Pro Feature', body: 'Upgrade to Pro to unlock this feature.' };
-    document.getElementById('upgrade-icon').textContent  = meta.icon;
-    document.getElementById('upgrade-title').textContent = meta.title;
-    document.getElementById('upgrade-body').textContent  = meta.body;
-    document.getElementById('upgrade-overlay').style.display = 'flex';
-  }
-
-  function closeUpgradeOverlay() {
-    document.getElementById('upgrade-overlay').style.display = 'none';
-  }
-
-  document.getElementById('upgrade-overlay').addEventListener('click', function(e) {
-    if (e.target === this) closeUpgradeOverlay();
-  });
-
-  async function startProTrial() {
-    closeUpgradeOverlay();
-    try {
-      const res = await fetch(API_BASE + '/api/v1/billing/checkout-public', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: localStorage.getItem('bbb_user_email') || null, plan: 'pro' }),
-      });
-      if (res.ok) {
-        const { checkout_url } = await res.json();
-        if (checkout_url) { window.location.href = checkout_url; return; }
-      }
-    } catch { /* fall through */ }
-    window.location.href = 'index.html#pricing';
-  }
-
-  // ── ROIC Calculator ─────────────────────────────────────────────
-  const ROIC_BENCHMARKS = [
-    { bank: 'Citizens Bank',   bonus: 400, deposit: 1000, days: 60 },
-    { bank: 'Huntington',      bonus: 400, deposit: 1000, days: 90 },
-    { bank: 'U.S. Bank',       bonus: 500, deposit: 6000, days: 60 },
-    { bank: 'TD Bank',         bonus: 400, deposit: 2500, days: 60 },
-    { bank: 'Fifth Third',     bonus: 475, deposit: 500,  days: 90 },
-    { bank: 'Chase Total',     bonus: 300, deposit: 500,  days: 90 },
-  ];
-
-  function calcROIC() {
-    const bonus   = parseFloat(document.getElementById('roic-bonus').value)   || 0;
-    const deposit = parseFloat(document.getElementById('roic-deposit').value) || 1;
-    const days    = parseFloat(document.getElementById('roic-days').value)    || 1;
-    const fee     = parseFloat(document.getElementById('roic-fee').value)     || 0;
-
-    const feeTotal = fee * (days / 30);
-    const net      = bonus - feeTotal;
-    const roic     = (net / deposit) * 100;
-    const apy      = (roic / days) * 365;
-
-    document.getElementById('roic-pct').textContent = roic.toFixed(1) + '%';
-    document.getElementById('roic-apy').textContent = apy.toFixed(1)  + '%';
-    document.getElementById('roic-net').textContent = '$' + net.toFixed(0);
-    document.getElementById('roic-formula').innerHTML =
-      `ROIC = $${net.toFixed(0)} / $${deposit.toFixed(0)} = <strong style="color:var(--text)">${roic.toFixed(1)}%</strong> &nbsp;·&nbsp; ` +
-      `APY = (${roic.toFixed(1)}% / ${days} days) × 365 = <strong style="color:var(--text)">${apy.toFixed(1)}%</strong> &nbsp;·&nbsp; ` +
-      `Net = $${bonus} − $${feeTotal.toFixed(0)} fees = <strong style="color:#4ade80">$${net.toFixed(0)}</strong>`;
-
-    // Comparison table
-    const tbody = document.getElementById('roic-compare-body');
-    tbody.innerHTML = ROIC_BENCHMARKS.map(r => {
-      const rROIC = (r.bonus / r.deposit) * 100;
-      const rAPY  = (rROIC / r.days) * 365;
-      return `<tr>
-        <td><strong>${r.bank}</strong></td>
-        <td style="color:#4ade80;font-weight:700">$${r.bonus}</td>
-        <td>$${r.deposit.toLocaleString()}</td>
-        <td>${r.days}d</td>
-        <td style="font-weight:700">${rROIC.toFixed(1)}%</td>
-        <td class="grad-text" style="font-weight:800">${rAPY.toFixed(1)}%</td>
-      </tr>`;
-    }).join('');
-  }
-
-  // ── 2nd Chance partners (no ChexSystems / no EWS) ──────────────
-  // Scoring: cutoff = 75, threshold = 70 (cutoff − 5). Score ≥ 70 → route here.
-  // All applications approved — no hard declines.
-  const SECOND_CHANCE = [
-    // ── Fintechs ──────────────────────────────────────────────────
-    { name: 'Chime',       initial: 'C', type: 'Fintech',        bureau: 'None',        bonus: null,  note: 'No ChexSystems or EWS. Instant approval. SpotMe overdraft up to $200.',       url: 'https://chime.com' },
-    { name: 'Varo Bank',   initial: 'V', type: 'Fintech',        bureau: 'None',        bonus: null,  note: 'FDIC insured. No minimum balance. Cash advances up to $500.',                url: 'https://varomoney.com' },
-    { name: 'Current',     initial: 'C', type: 'Fintech',        bureau: 'None',        bonus: null,  note: 'No ChexSystems. Instant direct deposit up to 2 days early.',                url: 'https://current.com' },
-    { name: 'Dave',        initial: 'D', type: 'Fintech',        bureau: 'None',        bonus: null,  note: 'ExtraCash advances up to $500. No interest, no credit check.',              url: 'https://dave.com' },
-    { name: 'GO2bank',     initial: 'G', type: 'Fintech',        bureau: 'None',        bonus: null,  note: 'Powered by Green Dot. No ChexSystems. Up to $200 overdraft protection.',   url: 'https://go2bank.com' },
-    { name: 'Revolut',     initial: 'R', type: 'Fintech',        bureau: 'None',        bonus: null,  note: 'No ChexSystems. Multi-currency. Free plan available.',                     url: 'https://revolut.com' },
-    { name: 'One Finance', initial: 'O', type: 'Fintech',        bureau: 'None',        bonus: null,  note: 'No ChexSystems or hard pull. High-yield savings pockets.',                 url: 'https://onefinance.com' },
-    // ── Credit Unions ─────────────────────────────────────────────
-    { name: 'Self-Help CU',     initial: 'S', type: 'Credit Union', bureau: 'None',     bonus: null,  note: '2nd Chance Checking program. Mission-driven CU. Open to everyone.',       url: 'https://self-help.org' },
-    { name: 'Alliant CU',       initial: 'A', type: 'Credit Union', bureau: 'Soft only', bonus: null, note: 'Large online CU. Often approves applicants with ChexSystems history.',     url: 'https://alliantcreditunion.org' },
-    { name: 'DCU',              initial: 'D', type: 'Credit Union', bureau: 'Soft only', bonus: null, note: 'Digital Federal CU. Open membership. No ChexSystems for basic checking.', url: 'https://dcu.org' },
-    // ── Banks with 2nd Chance programs ───────────────────────────
-    { name: 'Wells Fargo Opportunity', initial: 'W', type: 'Bank', bureau: 'Limited',   bonus: null,  note: 'Opportunity Checking — designed for customers with past banking issues.',  url: 'https://wellsfargo.com' },
-    { name: 'Woodforest National',     initial: 'W', type: 'Bank', bureau: 'None',      bonus: null,  note: '2nd Chance Checking. Available in select Walmart locations nationwide.',   url: 'https://woodforest.com' },
-  ];
-
-  let showing2ndChance = false;
-
-  function toggle2ndChance() {
-    showing2ndChance = !showing2ndChance;
-    const panel = document.getElementById('second-chance-panel');
-    const btn   = document.getElementById('btn-2nd-chance');
-    panel.style.display = showing2ndChance ? 'block' : 'none';
-    btn.style.background = showing2ndChance ? 'rgba(251,191,36,.12)' : '';
-    if (showing2ndChance) build2ndChance();
-  }
-
-  function build2ndChance() {
-    const grid = document.getElementById('second-chance-grid');
-    grid.innerHTML = SECOND_CHANCE.map(p => `
-      <div class="offer-card">
-        <div class="offer-header">
-          <div style="display:flex;gap:10px;align-items:flex-start">
-            <div class="offer-bank-icon" style="background:linear-gradient(135deg,#1e40af,#7c3aed)">${p.initial}</div>
-            <div>
-              <div class="offer-bank">${p.name}</div>
-              <div class="offer-type">${p.type}</div>
-            </div>
-          </div>
-          <span class="status-badge green" style="font-size:10px;align-self:flex-start"><span class="dot"></span>Open</span>
-        </div>
-        <div class="offer-req" style="line-height:1.55">${p.note}</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <span class="status-badge ${p.bureau === 'None' ? 'green' : 'yellow'}" style="font-size:10px">
-            <span class="dot"></span>${p.bureau === 'None' ? 'No ChexSystems / No EWS' : p.bureau + ' check only'}
-          </span>
-          <span class="status-badge blue" style="font-size:10px"><span class="dot"></span>${p.type}</span>
-        </div>
-        <div class="offer-footer">
-          <span style="font-size:11px;color:var(--muted)">Score threshold: 70+</span>
-          <a href="${p.url}" target="_blank" rel="noopener" class="offer-btn" style="text-decoration:none">
-            Open Account →
-          </a>
-        </div>
-      </div>`).join('');
+  function _csrfHeaders(extra = {}) {
+    const token = document.cookie.split('; ').find(r => r.startsWith('csrf_token='))?.split('=')[1] || '';
+    return { 'Content-Type': 'application/json', 'X-CSRF-Token': token, ...extra };
   }
 
   // ── Offer data ─────────────────────────────────────────────────
@@ -1527,6 +1117,24 @@
     { bank:'Truist Bank', initial:'T', bonus:400, req:'$1,000 DD in 90 days', type:'Checking', roic:'8.9%', time:'90 days', ews:'EWS', claimed:false },
     { bank:'Fifth Third', initial:'F', bonus:475, req:'$500 DD in 90 days', type:'Checking', roic:'8.3%', time:'90 days', ews:'ChexSystems', claimed:false },
   ];
+
+  // Replace hardcoded offers with real opportunities from Plaid exchange if available
+  const _savedOpps = JSON.parse(localStorage.getItem('bbb_opportunities') || 'null');
+  if (_savedOpps && _savedOpps.length) {
+    OFFERS.length = 0;
+    _savedOpps.forEach(o => OFFERS.push({
+      bank:    o.bank_name,
+      initial: o.bank_name[0].toUpperCase(),
+      bonus:   o.bonus_amount,
+      req:     `$${Number(o.required_deposit).toLocaleString()} deposit · ${o.deadline_days} days`,
+      type:    'Checking',
+      roic:    o.roi_pct.toFixed(1) + '%',
+      time:    o.deadline_days + ' days',
+      ews:     o.difficulty === 'hard' ? 'EWS' : 'ChexSystems',
+      claimed: false,
+      _raw:    o,
+    }));
+  }
 
   function buildOffers() {
     const grid = document.getElementById('offers-grid');
@@ -1562,59 +1170,82 @@
     `).join('');
   }
 
-  function claimOffer(i) {
+  async function claimOffer(i) {
     if (OFFERS[i].claimed) return;
-    OFFERS[i].claimed = true;
+    const o   = OFFERS[i];
     const btn = document.getElementById(`offer-btn-${i}`);
-    btn.textContent = '✓ Signed Up';
-    btn.classList.add('claimed');
-    showToast(`🎁 ${OFFERS[i].bank} signed up! 91-day fee waiver applied.`);
-    // Update waiver in subscription page
-    setTimeout(() => showToast('Your $49/mo fee is now waived for 91 days.'), 2000);
+    btn.disabled  = true;
+    btn.innerHTML = '<span style="opacity:.6">Starting…</span>';
+
+    try {
+      const raw      = o._raw || {};
+      const deadline = new Date();
+      deadline.setDate(deadline.getDate() + (raw.deadline_days || 90));
+
+      const res = await fetch(`${BBB_API}/api/v1/campaigns`, {
+        method:  'POST',
+        headers: _csrfHeaders(_bbbToken ? { 'Authorization': `Bearer ${_bbbToken}` } : {}),
+        body: JSON.stringify({
+          bank_name:                  raw.bank_name || o.bank,
+          bonus_amount:               raw.bonus_amount || o.bonus,
+          required_deposit_volume:    raw.required_deposit || 1000,
+          required_transaction_count: raw.min_transactions || 1,
+          deadline:                   deadline.toISOString(),
+          notes:                      raw.notes || null,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        showToast('⚠ ' + (err.detail || 'Could not start campaign. Try again.'));
+        btn.disabled = false;
+        btn.textContent = 'Sign Up → Waiver';
+        return;
+      }
+
+      OFFERS[i].claimed = true;
+      btn.textContent   = '✓ Campaign Started';
+      btn.classList.add('claimed');
+      showToast(`🎁 ${o.bank} campaign started! 91-day fee waiver applied.`);
+      setTimeout(() => showToast('Track your progress in the Overview.'), 2500);
+    } catch (err) {
+      showToast('⚠ ' + err.message);
+      btn.disabled    = false;
+      btn.textContent = 'Sign Up → Waiver';
+    }
   }
 
   buildOffers();
+
+  // Auto-navigate to offers after bank link (deferred so toast vars are initialized)
+  if (new URLSearchParams(window.location.search).get('bank_linked') === 'true') {
+    setTimeout(() => {
+      showPage('offers', document.querySelectorAll('.nav-item')[1]);
+      showToast('Bank linked! Here are your best matched offers.');
+    }, 0);
+  }
 
   // ── Page navigation ────────────────────────────────────────────
   const PAGE_TITLES = {
     overview:     ['Overview',           'Your financial command center'],
     offers:       ['Live Offers',        '$400+ personalized deals · Chase excluded'],
     subscription: ['Subscription',       'Pro Monthly — ACH billing via Plaid'],
-    accounts:     ['Linked Banks',       'Bank-grade Plaid security · Read-only access'],
+    accounts:     ['Linked Banks',       '2 accounts connected via Plaid'],
     scheduler:    ['Autopay Scheduler',  '2 active schedules · ACH push/pull running'],
     monitor:      ['Policy Monitor',     '1,004 sources · 2 alerts this week'],
     agent:        ['AI Bonus Agent',     'GPT-4o · Knows your full profile'],
-    roic:         ['ROIC Calculator',    'Return on invested capital — free for all members'],
     files:        ['Documents',          '3 files · Secured in object storage'],
-    settings:     ['Settings',           'Account preferences and security'],
   };
 
-  function showPage(id, navEl, push = true) {
-    // Gate paid pages for free users
-    if (PAID_PAGES.has(id) && !isPaid()) {
-      showUpgradeOverlay(id);
-      return;
-    }
-    closeUpgradeOverlay();
+  function showPage(id, navEl) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    const pageEl = document.getElementById('page-' + id);
-    if (pageEl) pageEl.classList.add('active');
+    document.getElementById('page-' + id).classList.add('active');
     if (navEl) navEl.classList.add('active');
     const [title, sub] = PAGE_TITLES[id] ?? ['Command Center', ''];
     document.getElementById('page-title').textContent = title;
     document.getElementById('page-sub').textContent   = sub;
-    if (push) history.pushState(null, '', '#' + id);
-    if (id === 'roic') calcROIC();
   }
-
-  window.addEventListener('hashchange', () => {
-    const id = location.hash.slice(1) || 'overview';
-    if (!PAGE_TITLES[id]) return;
-    const navEl = [...document.querySelectorAll('.nav-item')]
-      .find(n => n.getAttribute('onclick')?.includes("'" + id + "'"));
-    showPage(id, navEl, false);
-  });
 
   // ── Live clock ─────────────────────────────────────────────────
   function updateClock() {
@@ -1647,21 +1278,26 @@
       "⚠️ Heads up — our policy monitor flagged Wells Fargo 3 hours ago. They just tightened their ChexSystems requirement from 12 months to 24 months with no derogatory marks.\n\nBefore applying, I'd recommend checking your ChexSystems report (free via AnnualCreditReport.com). If you're clean for 24+ months, you're fine. If not, I'd skip Wells Fargo and go Citizens Bank instead — same $400 bonus, no EWS/ChexSystems issues for most members.",
   };
 
-  async function sendChat(text) {
-    const input    = document.getElementById('chat-input');
-    const msg      = text || input.value.trim();
+  function sendChat(text) {
+    const input = document.getElementById('chat-input');
+    const msg = text || input.value.trim();
     if (!msg) return;
-    input.value    = '';
-    const messages = document.getElementById('chat-messages');
-    const userInitial = document.querySelector('.user-avatar')?.textContent || 'J';
+    input.value = '';
 
+    const messages = document.getElementById('chat-messages');
+
+    // User bubble
     messages.innerHTML += `
       <div style="display:flex;gap:10px;align-items:flex-start;flex-direction:row-reverse">
-        <div style="width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0">${userInitial}</div>
-        <div style="background:rgba(131,58,180,.15);border:1px solid rgba(131,58,180,.25);border-radius:14px 14px 2px 14px;padding:12px 14px;max-width:80%;font-size:13px;line-height:1.6">${msg}</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0">J</div>
+        <div style="background:rgba(131,58,180,.15);border:1px solid rgba(131,58,180,.25);border-radius:14px 14px 2px 14px;padding:12px 14px;max-width:80%;font-size:13px;line-height:1.6">
+          ${msg}
+        </div>
       </div>`;
+
     messages.scrollTop = messages.scrollHeight;
 
+    // Typing indicator
     const typingId = 'typing-' + Date.now();
     messages.innerHTML += `
       <div id="${typingId}" style="display:flex;gap:10px;align-items:flex-start">
@@ -1672,219 +1308,23 @@
       </div>`;
     messages.scrollTop = messages.scrollHeight;
 
-    // Try backend AI agent first
-    let reply = null;
-    try {
-      const token = localStorage.getItem('bbb_access_token');
-      const res = await fetch(API_BASE + '/api/v1/chat/message', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
-        body:    JSON.stringify({ message: msg, context: 'bonus_strategy' }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        reply = data.response || data.message || data.content;
-      }
-    } catch { /* fallback */ }
-
-    reply = reply || AI_REPLIES[msg] ||
-      "Based on your profile — 2 open accounts, $2k capital, Chase excluded from offer feed, 71-day waiver active — I'd focus on Citizens Bank ($400) and Huntington ($400) as your next two moves. Both are ChexSystems-only, no monthly fees, and easy DD requirements. Want me to walk you through the application strategy?";
-
     setTimeout(() => {
-      document.getElementById(typingId)?.remove();
+      const typingEl = document.getElementById(typingId);
+      if (typingEl) typingEl.remove();
+
+      const reply = AI_REPLIES[msg] ||
+        "Great question! Based on your current profile — 2 open accounts, $2k capital, Chase excluded from offer feed, and 71-day waiver active — I'd focus on Citizens Bank ($400) and Huntington ($400) as your next two moves. Both are ChexSystems-only, no monthly fees, and low DD requirements. Want me to walk you through the application strategy?";
+
       messages.innerHTML += `
         <div style="display:flex;gap:10px;align-items:flex-start">
           <div style="width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🤖</div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px 14px 14px 2px;padding:14px 16px;max-width:85%;font-size:13px;line-height:1.7;white-space:pre-line;color:var(--sub)">${reply}</div>
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px 14px 14px 2px;padding:14px 16px;max-width:85%;font-size:13px;line-height:1.7;white-space:pre-line;color:var(--sub)">
+            ${reply}
+          </div>
         </div>`;
       messages.scrollTop = messages.scrollHeight;
     }, 900);
   }
-
-  // ── Auth gate ──────────────────────────────────────────────────
-  function checkAuth() {
-    const token = localStorage.getItem('bbb_access_token');
-    const gate  = document.getElementById('auth-gate');
-    if (token) {
-      gate.style.display = 'none';
-      loadDashboard();
-    } else {
-      gate.style.display = 'flex';
-    }
-  }
-
-  function bypassAuth() {
-    document.getElementById('auth-gate').style.display = 'none';
-  }
-
-  // ── Google Sign-In for the auth gate ──────────────────────────
-  function gateSignInWithGoogle() {
-    const btn = document.getElementById('gate-google-btn');
-    btn.disabled = true;
-    btn.innerHTML = '<span style="display:inline-block;width:16px;height:16px;border:2px solid #ccc;border-top-color:#333;border-radius:50%;animation:spin .6s linear infinite;margin-right:8px;vertical-align:middle"></span>Connecting…';
-
-    let attempts = 0;
-    const poll = setInterval(() => {
-      attempts++;
-      if (window.google?.accounts?.id) {
-        clearInterval(poll);
-        google.accounts.id.initialize({
-          client_id: '1018665176191-6ho6drj9jujmsrbnnt2at2aougdlo3nr.apps.googleusercontent.com',
-          callback:  handleGateCredential,
-          ux_mode:   'popup',
-        });
-        google.accounts.id.prompt(n => {
-          if (n.isNotDisplayed() || n.isSkippedMoment()) {
-            window.location.href = API_BASE + '/api/v1/auth/oauth/google';
-          }
-        });
-      } else if (attempts > 20) {
-        clearInterval(poll);
-        window.location.href = API_BASE + '/api/v1/auth/oauth/google';
-      }
-    }, 150);
-  }
-
-  async function handleGateCredential(response) {
-    try {
-      const res = await fetch(API_BASE + '/api/v1/auth/oauth/google/verify', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ credential: response.credential }),
-      });
-      if (!res.ok) throw new Error('Auth failed');
-      const data = await res.json();
-      localStorage.setItem('bbb_access_token', data.access_token);
-      if (data.user?.name)  localStorage.setItem('bbb_user_name',  data.user.name);
-      if (data.user?.email) localStorage.setItem('bbb_user_email', data.user.email);
-      document.getElementById('auth-gate').style.display = 'none';
-      loadDashboard();
-      showToast('Signed in with Google ✓');
-    } catch {
-      showToast('Sign-in failed — try again');
-      const btn = document.getElementById('gate-google-btn');
-      btn.disabled = false;
-      btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>Continue with Google';
-    }
-  }
-
-  // ── Backend data loading ───────────────────────────────────────
-  async function loadDashboard() {
-    const token = localStorage.getItem('bbb_access_token');
-    if (!token) return;
-    const h = { 'Authorization': 'Bearer ' + token };
-    try {
-      const [profileRes, subRes] = await Promise.allSettled([
-        fetch(API_BASE + '/api/v1/auth/me',              { headers: h }),
-        fetch(API_BASE + '/api/v1/onboarding/status',    { headers: h }),
-      ]);
-      if (profileRes.status === 'fulfilled' && profileRes.value.ok) {
-        const u    = await profileRes.value.json();
-        const name = [u.first_name, u.last_name].filter(Boolean).join(' ') || u.email || 'You';
-        document.querySelector('.user-name').textContent  = name;
-        document.querySelector('.user-avatar').textContent = name[0]?.toUpperCase() || 'U';
-        document.querySelector('.user-plan').textContent  =
-          u.subscription_status === 'active' ? 'Pro · Active' : 'Starter';
-      }
-    } catch { /* static demo data shown */ }
-  }
-
-  async function refreshDashboard() {
-    showToast('Refreshing…');
-    await loadDashboard();
-    showToast('Updated ✓');
-  }
-
-  // ── Plaid Link ─────────────────────────────────────────────────
-  async function openPlaidLink() {
-    const token = localStorage.getItem('bbb_access_token');
-    let linkToken = null;
-    try {
-      const res = await fetch(API_BASE + '/api/v1/kyc/plaid-link-token', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json', ...(token ? { 'Authorization': 'Bearer ' + token } : {}) },
-        body:    JSON.stringify({}),
-      });
-      if (res.ok) linkToken = (await res.json()).link_token;
-    } catch { /* no backend */ }
-
-    if (linkToken && linkToken !== 'link-sandbox-mock-token' && window.Plaid) {
-      Plaid.create({
-        token:     linkToken,
-        onSuccess: (pt, meta) => {
-          showToast((meta?.institution?.name || 'Bank') + ' linked ✓');
-          setTimeout(loadDashboard, 800);
-        },
-      }).open();
-    } else {
-      showToast('Plaid Link ready — connect via BBBOnboarding for full setup');
-    }
-  }
-
-  // ── Init ──────────────────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(location.search);
-
-    if (params.get('checkout_success') === 'true') {
-      const sid = params.get('session_id') || '';
-      handleCheckoutSuccess(sid);
-    } else {
-      checkAuth();
-    }
-
-    updateNavTierBadges();
-    calcROIC();
-
-    const initPage = location.hash.slice(1) || 'overview';
-    if (PAGE_TITLES[initPage]) {
-      const navEl = [...document.querySelectorAll('.nav-item')]
-        .find(n => n.getAttribute('onclick')?.includes("'" + initPage + "'"));
-      showPage(initPage, navEl, false);
-    }
-  });
-
-  function handleCheckoutSuccess(sessionId) {
-    // Store that this user has trialing status
-    localStorage.setItem('bbb_subscription_status', 'trialing');
-    updateNavTierBadges();
-    localStorage.setItem('bbb_stripe_session', sessionId);
-
-    // Clean URL so refresh doesn't re-trigger
-    history.replaceState(null, '', 'command-center.html#overview');
-
-    // Show welcome toast sequence
-    showToast('🎉 Trial started! Welcome to BigBankBonus Pro.');
-    setTimeout(() => showToast('Your 3-day free trial is now active — no charge until day 4.'), 3500);
-
-    // Update subscription badge in sidebar
-    const planEl = document.querySelector('.user-plan');
-    if (planEl) planEl.textContent = 'Pro · Trialing (day 1 of 3)';
-
-    // Show welcome card on overview
-    const overviewPage = document.getElementById('page-overview');
-    if (overviewPage) {
-      const welcome = document.createElement('div');
-      welcome.style.cssText = 'background:linear-gradient(135deg,rgba(131,58,180,.12),rgba(225,48,108,.1));border:1px solid rgba(225,48,108,.3);border-radius:16px;padding:24px;margin-bottom:0;display:flex;align-items:center;gap:16px';
-      welcome.innerHTML = `
-        <div style="font-size:32px;flex-shrink:0">🎉</div>
-        <div>
-          <div style="font-size:16px;font-weight:800;margin-bottom:4px">Your Pro trial is active!</div>
-          <p style="font-size:13px;color:var(--muted);line-height:1.6">You have full access for 3 days. Connect your bank to see your personalized $400+ offer feed, then sign up for one offer to waive your first 91 days of billing.</p>
-          <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
-            <span class="status-badge green"><span class="dot"></span>Trial Active</span>
-            <span class="status-badge purple"><span class="dot"></span>3 days remaining</span>
-          </div>
-        </div>
-        <button onclick="this.parentElement.remove()" style="margin-left:auto;background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;flex-shrink:0;align-self:flex-start">✕</button>`;
-      overviewPage.insertBefore(welcome, overviewPage.firstChild);
-    }
-
-    // No auth gate — they just came from Stripe, treat as authenticated
-    document.getElementById('auth-gate').style.display = 'none';
-  }
 </script>
-
-<script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js" async></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 </body>
 </html>
