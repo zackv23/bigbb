@@ -347,6 +347,7 @@
     .sched-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:8px; }
     @keyframes spin { to { transform:rotate(360deg); } }
   </style>
+  <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 </head>
 <body>
 
@@ -757,7 +758,7 @@
         <h2>Linked Banks</h2>
         <div class="section-sub">Connected via Plaid · Read-only access · Bank-grade security</div>
       </div>
-      <button class="btn btn-grad" onclick="showToast('Opening Plaid Link…')">+ Link Bank</button>
+      <button class="btn btn-grad" onclick="linkBank()">+ Link Bank</button>
     </div>
 
     <div class="grid-2">
@@ -836,7 +837,7 @@
       <div style="font-size:32px;margin-bottom:12px">🏦</div>
       <div style="font-size:16px;font-weight:700;margin-bottom:8px">Link another bank</div>
       <p style="font-size:13px;color:var(--muted);max-width:380px;margin:0 auto 20px;line-height:1.6">Connect additional banks to track balances and unlock the autopay scheduler for more offers simultaneously.</p>
-      <button class="btn btn-grad" onclick="showToast('Opening Plaid Link…')">+ Connect Bank via Plaid</button>
+      <button class="btn btn-grad" onclick="linkBank()">+ Connect Bank via Plaid</button>
     </div>
   </div>
 
@@ -1799,6 +1800,45 @@
     } catch (_) {}
   }
   initUser();
+
+  // ── Link a new bank via Plaid ──────────────────────────────────
+  async function linkBank() {
+    if (!_bbbToken) { showToast('Sign in first.'); return; }
+    showToast('Loading bank connection…');
+    try {
+      const ltRes = await fetch(`${BBB_API}/api/v1/banks/link-token`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!ltRes.ok) throw new Error('Could not start bank connection.');
+      const { link_token } = await ltRes.json();
+
+      const handler = Plaid.create({
+        token: link_token,
+        onSuccess: async (public_token, metadata) => {
+          showToast('Saving your bank…');
+          const exchRes = await fetch(`${BBB_API}/api/v1/banks/exchange`, {
+            method: 'POST',
+            headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+            body: JSON.stringify({
+              public_token,
+              institution_name: metadata?.institution?.name || '',
+              institution_id:   metadata?.institution?.institution_id || '',
+            }),
+          });
+          if (!exchRes.ok) { showToast('⚠ Bank save failed. Please try again.'); return; }
+          showToast('Bank linked! Refreshing…');
+          setTimeout(() => window.location.reload(), 1200);
+        },
+        onExit: (err) => {
+          if (err) showToast('Bank connection cancelled.');
+        },
+      });
+      handler.open();
+    } catch (err) {
+      showToast('⚠ Could not open bank connection. Try again.');
+    }
+  }
 </script>
 </body>
 </html>
