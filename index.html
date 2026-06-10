@@ -1355,7 +1355,12 @@
         }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Identity verification failed. Please try again.');
+      if (!res.ok) {
+        const detail = Array.isArray(data.detail)
+          ? data.detail.map(d => d.msg).join('; ')
+          : (data.detail || 'Identity verification failed. Please try again.');
+        throw new Error(detail);
+      }
       if (data.session_id) localStorage.setItem('bbb_kyc_session', data.session_id);
       closeModal();
       await _executeIntent(_kycEmail, _kycToken);
@@ -1383,11 +1388,13 @@
     document.getElementById('bbb-modal-title-text').textContent = titles[intent] || titles.free;
     document.getElementById('bbb-modal-sub').textContent        = subs[intent]   || subs.free;
     const form = document.getElementById('bbb-auth-form');
+    form.style.display = '';
     form.dataset.mode = 'register';
     _applyAuthMode('register');
     document.getElementById('bbb-error').textContent = '';
     form.reset();
-    document.getElementById('bbb-kyc-form').style.display  = 'none';
+    document.getElementById('bbb-kyc-form').style.display   = 'none';
+    document.getElementById('bbb-offers-step').style.display = 'none';
     document.getElementById('bbb-toggle-row').style.display = '';
     document.getElementById('bbb-modal').style.display = 'flex';
     setTimeout(() => document.getElementById('bbb-email').focus(), 50);
