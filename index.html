@@ -1157,6 +1157,9 @@
         </div>
       </div>
       <div class="bbb-error" id="bbb-error"></div>
+      <div id="bbb-forgot-row" style="display:none;text-align:right;margin-top:-8px;margin-bottom:4px;">
+        <a onclick="handleForgotPassword()" style="font-size:12px;color:#f472b6;cursor:pointer;text-decoration:underline;">Forgot password?</a>
+      </div>
       <button type="submit" class="grad-btn bbb-submit" id="bbb-submit-btn">Create Account</button>
     </form>
     <div class="bbb-toggle" id="bbb-toggle-row">
@@ -1449,6 +1452,7 @@
     document.getElementById('bbb-auth-form').dataset.mode = mode;
     document.getElementById('bbb-name-field').style.display    = mode === 'register' ? '' : 'none';
     document.getElementById('bbb-confirm-field').style.display = mode === 'register' ? '' : 'none';
+    document.getElementById('bbb-forgot-row').style.display   = mode === 'login'    ? '' : 'none';
     document.getElementById('bbb-submit-btn').textContent   = mode === 'register' ? 'Create Account' : 'Sign In';
     document.getElementById('bbb-password').autocomplete   = mode === 'register' ? 'new-password' : 'current-password';
     document.getElementById('bbb-toggle-row').innerHTML    = mode === 'register'
@@ -1460,6 +1464,24 @@
     const current = document.getElementById('bbb-auth-form').dataset.mode;
     _applyAuthMode(current === 'register' ? 'login' : 'register');
     document.getElementById('bbb-error').textContent = '';
+  }
+
+  async function handleForgotPassword() {
+    const email = document.getElementById('bbb-email').value.trim();
+    const errEl = document.getElementById('bbb-error');
+    if (!email) { errEl.textContent = 'Enter your email above first.'; return; }
+    errEl.textContent = '';
+    try {
+      await fetch(`${BBB_API}/api/v1/auth/forgot-password`, {
+        method: 'POST', headers: _csrfHeaders(),
+        body: JSON.stringify({ email }),
+      });
+      errEl.style.color = '#4ade80';
+      errEl.textContent = 'If that email exists, a reset link is on its way.';
+    } catch {
+      errEl.style.color = '';
+      errEl.textContent = 'Could not send reset email. Try again.';
+    }
   }
 
   // ── Form submit → register or login ───────────────────────────
