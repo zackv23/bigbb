@@ -622,7 +622,7 @@
         <div class="section-sub">Personalized for your profile · Chase excluded · 217 total tracked</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button class="btn btn-ghost" onclick="showToast('Refreshing offer feed from DoC…')">↺ Refresh</button>
+        <button class="btn btn-ghost" id="refresh-offers-btn" onclick="refreshOffers()">↺ Refresh</button>
       </div>
     </div>
 
@@ -1339,6 +1339,40 @@
         </div>
       </div>
     `).join('');
+  }
+
+  async function refreshOffers() {
+    const btn = document.getElementById('refresh-offers-btn');
+    btn.disabled = true;
+    btn.textContent = '↺ Refreshing…';
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/campaigns/opportunities`, {
+        headers: _bbbToken ? { 'Authorization': `Bearer ${_bbbToken}` } : {},
+      });
+      if (!res.ok) throw new Error(`${res.status}`);
+      const opps = await res.json();
+      localStorage.setItem('bbb_opportunities', JSON.stringify(opps));
+      OFFERS.length = 0;
+      opps.forEach(o => OFFERS.push({
+        bank:    o.bank_name,
+        initial: o.bank_name[0].toUpperCase(),
+        bonus:   o.bonus_amount,
+        req:     `$${Number(o.required_deposit).toLocaleString()} deposit · ${o.deadline_days} days`,
+        type:    'Checking',
+        roic:    `${o.roi_pct}%`,
+        time:    `${o.deadline_days} days`,
+        ews:     'ChexSystems',
+        claimed: false,
+        _raw:    o,
+      }));
+      buildOffers();
+      showToast(`Offers refreshed — ${opps.length} opportunities loaded.`);
+    } catch (err) {
+      showToast('Could not refresh — using cached offers.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '↺ Refresh';
+    }
   }
 
   function _claimSuccess(i) {
