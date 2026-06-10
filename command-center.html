@@ -1390,30 +1390,46 @@
     if (OFFERS[i].claimed) return;
     const o   = OFFERS[i];
     const btn = document.getElementById(`offer-btn-${i}`);
+
+    if (!_bbbToken) {
+      showToast('Sign in first to claim offers.');
+      return;
+    }
+
     btn.disabled  = true;
     btn.innerHTML = '<span style="opacity:.6">Starting…</span>';
 
-    if (_bbbToken) {
-      try {
-        const raw      = o._raw || {};
-        const deadline = new Date();
-        deadline.setDate(deadline.getDate() + (raw.deadline_days || 90));
-        const res = await fetch(`${BBB_API}/api/v1/campaigns`, {
-          method:  'POST',
-          headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
-          body: JSON.stringify({
-            bank_name:                  raw.bank_name || o.bank,
-            bonus_amount:               raw.bonus_amount || o.bonus,
-            required_deposit_volume:    raw.required_deposit || 1000,
-            required_transaction_count: raw.min_transactions || 1,
-            deadline:                   deadline.toISOString(),
-            notes:                      raw.notes || null,
-          }),
-        });
-        if (res.ok) { _claimSuccess(i); return; }
-      } catch (_) {}
+    try {
+      const raw      = o._raw || {};
+      const deadline = new Date();
+      deadline.setDate(deadline.getDate() + (raw.deadline_days || 90));
+      const res = await fetch(`${BBB_API}/api/v1/campaigns`, {
+        method:  'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+        body: JSON.stringify({
+          bank_name:                  raw.bank_name || o.bank,
+          bonus_amount:               raw.bonus_amount || o.bonus,
+          required_deposit_volume:    raw.required_deposit || 1000,
+          required_transaction_count: raw.min_transactions || 1,
+          deadline:                   deadline.toISOString(),
+          notes:                      raw.notes || null,
+        }),
+      });
+      if (res.ok) {
+        _claimSuccess(i);
+        return;
+      }
+      const data = await res.json().catch(() => ({}));
+      if (res.status === 402) {
+        showToast('Free plan limit reached — upgrade to Pro for unlimited campaigns.');
+      } else {
+        showToast(data.detail || 'Could not start campaign. Please try again.');
+      }
+    } catch (_) {
+      showToast('Connection error — please try again.');
     }
-    _claimSuccess(i);
+    btn.disabled = false;
+    btn.textContent = 'Sign Up → Waiver';
   }
 
   // ── Settings helpers ───────────────────────────────────────────
