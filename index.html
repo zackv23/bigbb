@@ -362,6 +362,15 @@
       vertical-align: middle; margin-right: 8px;
     }
     @keyframes bbbspin { to { transform: rotate(360deg); } }
+    .bbb-offer-card {
+      padding: 14px 16px; border-radius: 12px; cursor: pointer;
+      border: 1.5px solid var(--border); background: var(--dark);
+      transition: border-color .15s, background .15s;
+    }
+    .bbb-offer-card:hover { border-color: rgba(201,169,110,.5); }
+    .bbb-offer-card.selected { border-color: #c9a96e; background: rgba(201,169,110,.09); }
+    .bbb-offers-scroll { display: flex; flex-direction: column; gap: 10px; max-height: 320px; overflow-y: auto; padding-right: 2px; }
+    .bbb-skip-link { display: block; text-align: center; margin-top: 12px; background: none; border: none; color: var(--muted); font-size: 13px; cursor: pointer; width: 100%; }
 
     /* ── Toast ── */
     #toast {
@@ -374,6 +383,140 @@
       opacity: 0; pointer-events: none; white-space: nowrap; max-width: 90vw;
     }
     #toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+    /* ── Sitemap ── */
+    #sitemap { padding: 100px 0; }
+    .sitemap-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 56px;
+    }
+    .sitemap-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+    }
+    .sitemap-card h3 {
+      font-size: 13px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase; letter-spacing: .08em;
+      margin-bottom: 18px; padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sitemap-card ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .sitemap-card ul li a {
+      color: var(--text); text-decoration: none;
+      font-size: 15px; font-weight: 500;
+      display: flex; align-items: center; gap: 10px;
+      transition: color .2s;
+    }
+    .sitemap-card ul li a:hover { color: #E1306C; }
+    .sitemap-card ul li a .sm-icon { font-size: 16px; width: 22px; text-align: center; flex-shrink: 0; }
+    .sitemap-card ul li .sm-desc {
+      display: block; font-size: 12px; color: var(--muted);
+      margin-top: 2px; padding-left: 32px;
+    }
+
+    /* ── Careers ── */
+    #careers {
+      padding: 100px 24px;
+      background: var(--dark2);
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #careers .section-label { text-align: center; }
+    #careers .section-title { text-align: center; margin-bottom: 8px; }
+    #careers .section-sub   { text-align: center; margin-bottom: 40px; }
+    .careers-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 40px 36px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+    }
+    .careers-card-header { text-align: center; margin-bottom: 16px; }
+    .careers-card-title  { font-size: 26px; font-weight: 800; letter-spacing: -.02em; margin-bottom: 6px; }
+    .careers-card-sub    { font-size: 14px; color: var(--muted); line-height: 1.55; }
+    .careers-google-btn  {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: 12px;
+      padding: 13px 20px;
+      background: #fff;
+      border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 600; color: #1a1a1a;
+      cursor: pointer; font-family: inherit;
+      transition: box-shadow .2s, transform .15s;
+      margin-bottom: 20px;
+    }
+    .careers-google-btn:hover { box-shadow: 0 4px 20px rgba(0,0,0,.35); transform: translateY(-1px); }
+    .careers-google-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .careers-google-icon { width: 20px; height: 20px; flex-shrink: 0; }
+    .careers-divider { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .careers-divider-line { flex: 1; height: 1px; background: var(--border); }
+    .careers-divider-text { font-size: 12px; color: var(--muted); white-space: nowrap; }
+    .careers-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+    .careers-field label { font-size: 13px; font-weight: 600; }
+    .careers-field input {
+      background: var(--dark);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 14px; font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .careers-field input:focus {
+      border-color: rgba(225,48,108,.5);
+      box-shadow: 0 0 0 3px rgba(225,48,108,.1);
+    }
+    .careers-field input::placeholder { color: #475569; }
+    .careers-submit-btn {
+      width: 100%;
+      background: var(--grad);
+      color: #fff; border: none;
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      transition: opacity .2s, transform .15s;
+      margin-bottom: 16px;
+    }
+    .careers-submit-btn:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
+    .careers-submit-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .careers-toggle-row { text-align: center; font-size: 13px; color: var(--muted); }
+    .careers-toggle-btn {
+      background: none; border: none;
+      color: #f472b6; font-weight: 600; font-size: 13px;
+      cursor: pointer; font-family: inherit; padding: 0;
+      transition: color .2s;
+    }
+    .careers-toggle-btn:hover { color: #fb7185; }
+    .careers-card-footer {
+      margin-top: 22px;
+      font-size: 12px; color: #475569;
+      text-align: center; line-height: 1.6;
+    }
+    .careers-card-footer a { color: var(--muted); text-decoration: none; }
+    .careers-card-footer a:hover { color: var(--text); }
+    .careers-alert {
+      padding: 11px 14px; border-radius: 10px; font-size: 13px;
+      margin-bottom: 14px; display: none;
+    }
+    .careers-alert.error   { background: rgba(239,68,68,.1);  border: 1px solid rgba(239,68,68,.25);  color: #fca5a5; }
+    .careers-alert.success { background: rgba(74,222,128,.08); border: 1px solid rgba(74,222,128,.25); color: #86efac; }
+    .careers-alert.show    { display: block; }
+    .careers-spinner {
+      display: inline-block; width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,.3); border-top-color: #fff;
+      border-radius: 50%; animation: bbbspin .6s linear infinite;
+      vertical-align: middle; margin-right: 6px;
+    }
 
     /* ── Scroll fade-in ── */
     .fade-in { opacity: 0; transform: translateY(22px); transition: opacity .65s ease, transform .65s ease; }
@@ -393,9 +536,9 @@
     <li><a href="#how">How it Works</a></li>
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="command-center.html">Command Center</a></li>
-    <li><a href="careers.html">Careers</a></li>
+    <li><a href="#careers">Careers</a></li>
     <li><a href="#faq">FAQ</a></li>
-    <li><a href="sitemap.html">Site Map</a></li>
+    <li><a href="#sitemap">Site Map</a></li>
   </ul>
   <button class="grad-btn nav-cta" onclick="openModal('free')">Get Started Free</button>
 </nav>
@@ -703,13 +846,265 @@
   </p>
 </section>
 
+<!-- ── Sitemap ───────────────────────────────────────────────── -->
+<section id="sitemap">
+  <div class="container">
+    <div class="section-label fade-in">Navigation</div>
+    <h2 class="section-title fade-in">Site Map</h2>
+    <p class="section-sub fade-in">Every page and section of BigBankBonus, organized for easy navigation.</p>
+
+    <div class="sitemap-grid">
+      <div class="sitemap-card fade-in">
+        <h3>Marketing</h3>
+        <ul>
+          <li>
+            <a href="#"><span class="sm-icon">🏠</span> Home</a>
+            <span class="sm-desc">Landing page — bonuses, features, pricing</span>
+          </li>
+          <li>
+            <a href="#features"><span class="sm-icon">⚡</span> Features</a>
+            <span class="sm-desc">AI scheduler, Plaid linking, compliance engine</span>
+          </li>
+          <li>
+            <a href="#how"><span class="sm-icon">📋</span> How it Works</a>
+            <span class="sm-desc">4-step process overview</span>
+          </li>
+          <li>
+            <a href="#pricing"><span class="sm-icon">💳</span> Pricing</a>
+            <span class="sm-desc">Free, Pro ($49/mo) plans</span>
+          </li>
+          <li>
+            <a href="#faq"><span class="sm-icon">❓</span> FAQ</a>
+            <span class="sm-desc">Frequently asked questions</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sitemap-card fade-in">
+        <h3>Platform</h3>
+        <ul>
+          <li>
+            <a href="#careers"><span class="sm-icon">🚀</span> Get Started</a>
+            <span class="sm-desc">Sign in or create your account</span>
+          </li>
+          <li>
+            <a href="command-center.html"><span class="sm-icon">🖥️</span> Command Center</a>
+            <span class="sm-desc">Dashboard — overview, offers, scheduler</span>
+          </li>
+          <li>
+            <a href="command-center.html"><span class="sm-icon">🏦</span> Live Offers</a>
+            <span class="sm-desc">Bank bonus opportunities filtered by ROI</span>
+          </li>
+          <li>
+            <a href="command-center.html"><span class="sm-icon">📅</span> Autopay Scheduler</a>
+            <span class="sm-desc">AI-powered ACH deposit scheduler</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sitemap-card fade-in">
+        <h3>Company</h3>
+        <ul>
+          <li>
+            <a href="#careers"><span class="sm-icon">💼</span> Careers</a>
+            <span class="sm-desc">Sign in or join the platform</span>
+          </li>
+          <li>
+            <a href="#sitemap"><span class="sm-icon">🗺️</span> Site Map</a>
+            <span class="sm-desc">You are here</span>
+          </li>
+        </ul>
+      </div>
+
+      <div class="sitemap-card fade-in">
+        <h3>Legal</h3>
+        <ul>
+          <li>
+            <a href="privacy.html"><span class="sm-icon">🔒</span> Privacy Policy</a>
+            <span class="sm-desc">CCPA + GDPR compliant data handling</span>
+          </li>
+          <li>
+            <a href="terms.html"><span class="sm-icon">📄</span> Terms of Service</a>
+            <span class="sm-desc">Platform usage terms and conditions</span>
+          </li>
+          <li>
+            <a href="contact.html"><span class="sm-icon">⚠️</span> Risk Disclosure</a>
+            <span class="sm-desc">Financial risk and regulatory disclosures</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Careers ───────────────────────────────────────────────── -->
+<section id="careers">
+  <div class="section-label fade-in">Join us</div>
+  <h2 class="section-title fade-in">Sign in or create an account</h2>
+  <p class="section-sub fade-in">Access your Command Center — bank bonuses are waiting.</p>
+
+  <div class="careers-card fade-in">
+    <button class="careers-google-btn" id="careers-google-btn" onclick="careersSignInWithGoogle()">
+      <svg class="careers-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
+        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+      </svg>
+      Continue with Google
+    </button>
+
+    <div class="careers-divider">
+      <div class="careers-divider-line"></div>
+      <span class="careers-divider-text">or continue with email</span>
+      <div class="careers-divider-line"></div>
+    </div>
+
+    <div class="careers-card-header">
+      <h3 class="careers-card-title" id="careers-card-title">Welcome back</h3>
+      <p class="careers-card-sub" id="careers-card-sub">Sign in to your Command Center</p>
+    </div>
+
+    <div class="careers-alert" id="careers-alert"></div>
+
+    <form onsubmit="return false">
+      <div class="careers-field">
+        <label for="careers-email">Email</label>
+        <input type="email" id="careers-email" placeholder="you@example.com"
+          autocomplete="email"
+          onkeydown="if(event.key==='Enter')document.getElementById('careers-password').focus()" />
+      </div>
+      <div class="careers-field">
+        <label for="careers-password">Password</label>
+        <input type="password" id="careers-password" placeholder="••••••••"
+          autocomplete="current-password"
+          onkeydown="if(event.key==='Enter')careersSubmitEmail()" />
+      </div>
+      <button class="careers-submit-btn" id="careers-submit-btn" onclick="careersSubmitEmail()">
+        Sign In
+      </button>
+    </form>
+
+    <div class="careers-toggle-row">
+      <span id="careers-toggle-text">Don't have an account?</span>
+      <button class="careers-toggle-btn" id="careers-toggle-btn" onclick="careersToggleMode()">Sign up free</button>
+    </div>
+
+    <div class="careers-card-footer">
+      By continuing you agree to our
+      <a href="terms.html">Terms of Service</a> and <a href="privacy.html">Privacy Policy</a>.
+    </div>
+  </div>
+</section>
+
+<script>
+  let _careersMode = 'signin';
+
+  function careersToggleMode() {
+    _careersMode = _careersMode === 'signin' ? 'signup' : 'signin';
+    const isSignup = _careersMode === 'signup';
+    document.getElementById('careers-card-title').textContent = isSignup ? 'Create account'           : 'Welcome back';
+    document.getElementById('careers-card-sub').textContent   = isSignup ? 'Start your 3-day free trial' : 'Sign in to your Command Center';
+    document.getElementById('careers-submit-btn').textContent = isSignup ? 'Create Account'            : 'Sign In';
+    document.getElementById('careers-toggle-text').textContent = isSignup ? 'Already have an account?' : "Don't have an account?";
+    document.getElementById('careers-toggle-btn').textContent  = isSignup ? 'Sign in'                  : 'Sign up free';
+    document.getElementById('careers-password').autocomplete   = isSignup ? 'new-password'             : 'current-password';
+    careersShowAlert('', '');
+  }
+
+  function careersSignInWithGoogle() {
+    const btn = document.getElementById('careers-google-btn');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="careers-spinner"></span> Connecting to Google…`;
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      if (window.google && google.accounts && google.accounts.id) {
+        clearInterval(poll);
+        google.accounts.id.initialize({
+          client_id: '1018665176191-6ho6drj9jujmsrbnnt2at2aougdlo3nr.apps.googleusercontent.com',
+          callback:  careersHandleGoogleCredential,
+          ux_mode:   'popup',
+        });
+        google.accounts.id.prompt(n => {
+          if (n.isNotDisplayed() || n.isSkippedMoment())
+            window.location.href = BBB_API + '/api/v1/auth/oauth/google';
+        });
+      } else if (attempts > 20) {
+        clearInterval(poll);
+        window.location.href = BBB_API + '/api/v1/auth/oauth/google';
+      }
+    }, 150);
+  }
+
+  async function careersHandleGoogleCredential(response) {
+    const credential = response.credential;
+    const [, b64] = credential.split('.');
+    const payload = JSON.parse(atob(b64.replace(/-/g,'+').replace(/_/g,'/')));
+    careersShowAlert(`Signing in as ${payload.email}…`, 'success');
+    try {
+      const res = await fetch(BBB_API + '/api/v1/auth/google/verify', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential }),
+      });
+      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || 'Authentication failed'); }
+      const data = await res.json();
+      localStorage.setItem('bbb_access_token', data.access_token);
+      careersShowAlert('Signed in! Redirecting…', 'success');
+      setTimeout(() => { window.location.href = 'command-center.html'; }, 600);
+    } catch (err) {
+      careersShowAlert(err.message || 'Sign-in failed. Please try again.', 'error');
+      const btn = document.getElementById('careers-google-btn');
+      btn.disabled = false;
+      btn.innerHTML = `<svg class="careers-google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg> Continue with Google`;
+    }
+  }
+
+  async function careersSubmitEmail() {
+    const email    = document.getElementById('careers-email').value.trim();
+    const password = document.getElementById('careers-password').value;
+    const btn      = document.getElementById('careers-submit-btn');
+    if (!email)    { careersShowAlert('Email is required.', 'error'); return; }
+    if (!password) { careersShowAlert('Password is required.', 'error'); return; }
+    btn.disabled  = true;
+    btn.innerHTML = `<span class="careers-spinner"></span> ${_careersMode === 'signup' ? 'Creating account…' : 'Signing in…'}`;
+    try {
+      const endpoint = _careersMode === 'signup' ? BBB_API + '/api/v1/auth/register' : BBB_API + '/api/v1/auth/login';
+      const body     = _careersMode === 'signup'
+        ? JSON.stringify({ email, password })
+        : new URLSearchParams({ username: email, password }).toString();
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': _careersMode === 'signup' ? 'application/json' : 'application/x-www-form-urlencoded' },
+        body,
+      });
+      if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.detail || (_careersMode === 'signup' ? 'Registration failed' : 'Invalid email or password')); }
+      const data = await res.json();
+      localStorage.setItem('bbb_access_token', data.access_token);
+      careersShowAlert('Success! Redirecting…', 'success');
+      setTimeout(() => { window.location.href = 'command-center.html'; }, 600);
+    } catch (err) {
+      careersShowAlert(err.message, 'error');
+      btn.disabled    = false;
+      btn.textContent = _careersMode === 'signup' ? 'Create Account' : 'Sign In';
+    }
+  }
+
+  function careersShowAlert(msg, type) {
+    const el = document.getElementById('careers-alert');
+    if (!msg) { el.className = 'careers-alert'; return; }
+    el.textContent = msg;
+    el.className   = 'careers-alert ' + type + ' show';
+  }
+</script>
+
 <!-- ── Footer ────────────────────────────────────────────────── -->
 <footer>
   <div class="footer-copy">© 2026 BigBankBonus.com — All rights reserved.</div>
   <ul class="footer-links">
-    <li><a href="#">Privacy Policy</a></li>
-    <li><a href="#">Terms of Service</a></li>
-    <li><a href="#">Contact</a></li>
+    <li><a href="privacy.html">Privacy Policy</a></li>
+    <li><a href="terms.html">Terms of Service</a></li>
+    <li><a href="contact.html">Contact</a></li>
   </ul>
 </footer>
 
@@ -818,6 +1213,14 @@
         <span style="font-size:11px;color:var(--muted)">🔐 Never stored plain</span>
       </div>
     </form>
+
+    <!-- Offer selection step — shown after Plaid link -->
+    <div id="bbb-offers-step" style="display:none">
+      <div class="bbb-offers-scroll" id="bbb-offers-list"></div>
+      <div class="bbb-error" id="bbb-offers-error"></div>
+      <button class="grad-btn bbb-submit" id="bbb-offers-btn" onclick="submitCampaign()" disabled style="margin-top:14px">Select an offer above</button>
+      <button class="bbb-skip-link" onclick="_skipOfferStep()">Skip for now →</button>
+    </div>
   </div>
 </div>
 
@@ -1074,6 +1477,11 @@
 
       if (token) localStorage.setItem('bbb_access_token', token);
       _bbbToken = token;
+      if (_bbbIntent === 'free') {
+        closeModal();
+        window.location.href = 'command-center.html';
+        return;
+      }
       _showKycStep(email, token);
 
     } catch (err) {
@@ -1096,9 +1504,11 @@
         });
         const data = await res.json();
         if (data.checkout_url) { window.location.href = data.checkout_url; return; }
-        throw new Error(data.detail || 'Checkout unavailable. Please try again.');
+        throw new Error(data.detail || 'Checkout unavailable.');
       } catch (err) {
-        showToast('⚠ ' + err.message);
+        // Stripe not live yet — send to dashboard to start trial from there
+        showToast('Taking you to your dashboard to start your trial…');
+        setTimeout(() => { window.location.href = 'command-center.html'; }, 1200);
       }
       return;
     }
@@ -1128,19 +1538,23 @@
             });
             if (!exchRes.ok) { showToast('⚠ Bank save failed. Please try again.'); return; }
 
-            // Fetch ranked opportunities and cache locally for Command Center
             showToast('Bank linked! Finding best offers…');
+            let opps = [];
             try {
               const oppRes = await fetch(`${BBB_API}/api/v1/campaigns/opportunities`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               });
               if (oppRes.ok) {
-                const opps = await oppRes.json();
+                opps = await oppRes.json();
                 localStorage.setItem('bbb_opportunities', JSON.stringify(opps));
               }
             } catch (_) {}
 
-            window.location.href = 'command-center.html?bank_linked=true';
+            if (opps.length) {
+              _showOfferStep(opps, token);
+            } else {
+              window.location.href = 'command-center.html?bank_linked=true';
+            }
           },
           onExit: (err) => {
             if (err) showToast('Bank connection cancelled.');
@@ -1149,13 +1563,111 @@
         });
         handler.open();
       } catch (err) {
-        showToast('⚠ ' + err.message);
+        // Plaid not available — go to Command Center to link bank from Linked Banks section
+        showToast('Taking you to your dashboard to connect your bank…');
+        setTimeout(() => { window.location.href = 'command-center.html'; }, 1200);
       }
       return;
     }
 
     // 'free' → straight to Command Center
     window.location.href = 'command-center.html';
+  }
+
+  // ── Offer selection step ───────────────────────────────────────
+  let _selectedOffer = null;
+  let _offersList = [];
+
+  function _showOfferStep(opps, token) {
+    _bbbToken = token || _bbbToken;
+    _offersList = opps.slice(0, 5);
+    _selectedOffer = null;
+
+    document.getElementById('bbb-modal-title-text').textContent = 'Pick Your First Offer';
+    document.getElementById('bbb-modal-sub').textContent = 'Select a bank bonus to start earning. AI handles the rest.';
+    document.getElementById('bbb-auth-form').style.display    = 'none';
+    document.getElementById('bbb-kyc-form').style.display     = 'none';
+    document.getElementById('bbb-toggle-row').style.display   = 'none';
+
+    const list = document.getElementById('bbb-offers-list');
+    list.innerHTML = '';
+    _offersList.forEach((opp, i) => {
+      const card = document.createElement('div');
+      card.className = 'bbb-offer-card';
+      card.dataset.idx = i;
+      const diffColor = opp.difficulty === 'easy' ? '#4ade80' : opp.difficulty === 'hard' ? '#f87171' : '#fbbf24';
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:800;font-size:15px">${opp.bank_name}</div>
+          <div style="font-size:20px;font-weight:900;color:#c9a96e">$${opp.bonus_amount.toLocaleString()}</div>
+        </div>
+        <div style="display:flex;gap:14px;margin-top:6px;font-size:12px;color:var(--muted);flex-wrap:wrap">
+          <span>Deposit $${opp.required_deposit.toLocaleString()}</span>
+          <span>${opp.deadline_days}d to complete</span>
+          <span style="color:${diffColor};font-weight:700;text-transform:capitalize">${opp.difficulty}</span>
+          <span>${opp.roi_pct}% ROI</span>
+        </div>`;
+      card.onclick = () => _selectOfferCard(i);
+      list.appendChild(card);
+    });
+
+    document.getElementById('bbb-offers-error').textContent = '';
+    const btn = document.getElementById('bbb-offers-btn');
+    btn.disabled = true;
+    btn.textContent = 'Select an offer above';
+    document.getElementById('bbb-offers-step').style.display = '';
+    document.getElementById('bbb-modal').style.display = 'flex';
+  }
+
+  function _selectOfferCard(idx) {
+    _selectedOffer = _offersList[idx];
+    document.querySelectorAll('.bbb-offer-card').forEach((c, i) => {
+      c.classList.toggle('selected', i === idx);
+    });
+    const btn = document.getElementById('bbb-offers-btn');
+    btn.disabled = false;
+    btn.textContent = `Start ${_selectedOffer.bank_name} Campaign →`;
+  }
+
+  async function submitCampaign() {
+    if (!_selectedOffer) return;
+    const btn   = document.getElementById('bbb-offers-btn');
+    const errEl = document.getElementById('bbb-offers-error');
+    errEl.textContent = '';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="bbb-spinner"></span>Creating campaign…';
+
+    try {
+      const deadline = new Date();
+      deadline.setDate(deadline.getDate() + (_selectedOffer.deadline_days || 90));
+
+      const res = await fetch(`${BBB_API}/api/v1/campaigns`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+        body: JSON.stringify({
+          bank_name:                   _selectedOffer.bank_name,
+          bonus_amount:                _selectedOffer.bonus_amount,
+          required_deposit_volume:     _selectedOffer.required_deposit,
+          required_transaction_count:  _selectedOffer.min_transactions || 1,
+          deadline:                    deadline.toISOString(),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Could not create campaign. Please try again.');
+      localStorage.setItem('bbb_first_campaign', JSON.stringify(data));
+      closeModal();
+      showToast('Campaign created! Taking you to your dashboard…');
+      setTimeout(() => { window.location.href = 'command-center.html?campaign_created=true'; }, 1400);
+    } catch (err) {
+      errEl.textContent = err.message;
+      btn.disabled = false;
+      btn.textContent = `Start ${_selectedOffer.bank_name} Campaign →`;
+    }
+  }
+
+  function _skipOfferStep() {
+    closeModal();
+    window.location.href = 'command-center.html?bank_linked=true';
   }
 </script>
 </body>
