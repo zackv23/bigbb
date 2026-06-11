@@ -1792,20 +1792,35 @@
       "⚠️ Heads up — our policy monitor flagged Wells Fargo 3 hours ago. They just tightened their ChexSystems requirement from 12 months to 24 months with no derogatory marks.\n\nBefore applying, I'd recommend checking your ChexSystems report (free via AnnualCreditReport.com). If you're clean for 24+ months, you're fine. If not, I'd skip Wells Fargo and go Citizens Bank instead — same $400 bonus, no EWS/ChexSystems issues for most members.",
   };
 
-  function sendChat(text) {
+  let _chatConvId = localStorage.getItem('bbb_chat_conv_id') || null;
+
+  function _appendAgentBubble(reply) {
+    const messages = document.getElementById('chat-messages');
+    messages.innerHTML += `
+      <div style="display:flex;gap:10px;align-items:flex-start">
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🤖</div>
+        <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px 14px 14px 2px;padding:14px 16px;max-width:85%;font-size:13px;line-height:1.7;white-space:pre-line;color:var(--sub)">
+          ${_esc(reply)}
+        </div>
+      </div>`;
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  async function sendChat(text) {
     const input = document.getElementById('chat-input');
     const msg = text || input.value.trim();
     if (!msg) return;
     input.value = '';
 
     const messages = document.getElementById('chat-messages');
+    const avatar   = document.getElementById('sidebar-avatar')?.textContent?.trim() || '?';
 
     // User bubble
     messages.innerHTML += `
       <div style="display:flex;gap:10px;align-items:flex-start;flex-direction:row-reverse">
-        <div style="width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0">J</div>
+        <div style="width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0">${_esc(avatar)}</div>
         <div style="background:rgba(131,58,180,.15);border:1px solid rgba(131,58,180,.25);border-radius:14px 14px 2px 14px;padding:12px 14px;max-width:80%;font-size:13px;line-height:1.6">
-          ${msg}
+          ${_esc(msg)}
         </div>
       </div>`;
 
@@ -1822,22 +1837,28 @@
       </div>`;
     messages.scrollTop = messages.scrollHeight;
 
-    setTimeout(() => {
-      const typingEl = document.getElementById(typingId);
-      if (typingEl) typingEl.remove();
+    let reply = null;
+    try {
+      if (!_bbbToken) throw new Error('no token');
+      const res = await fetch(`${BBB_API}/api/v1/agents/support/chat`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+        body: JSON.stringify({ message: msg, conversation_id: _chatConvId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        reply = data.reply;
+        if (data.conversation_id) {
+          _chatConvId = data.conversation_id;
+          localStorage.setItem('bbb_chat_conv_id', _chatConvId);
+        }
+        if (data.escalated) reply += '\n\nThis has been escalated to our support team — they\'ll follow up by email.';
+      }
+    } catch (_) { /* fall through to canned reply */ }
 
-      const reply = AI_REPLIES[msg] ||
-        "Great question! Based on your current profile — 2 open accounts, $2k capital, Chase excluded from offer feed, and 71-day waiver active — I'd focus on Citizens Bank ($400) and Huntington ($400) as your next two moves. Both are ChexSystems-only, no monthly fees, and low DD requirements. Want me to walk you through the application strategy?";
-
-      messages.innerHTML += `
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <div style="width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🤖</div>
-          <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px 14px 14px 2px;padding:14px 16px;max-width:85%;font-size:13px;line-height:1.7;white-space:pre-line;color:var(--sub)">
-            ${reply}
-          </div>
-        </div>`;
-      messages.scrollTop = messages.scrollHeight;
-    }, 900);
+    document.getElementById(typingId)?.remove();
+    _appendAgentBubble(reply || AI_REPLIES[msg] ||
+      "Great question! Based on your current profile — 2 open accounts, $2k capital, Chase excluded from offer feed, and 71-day waiver active — I'd focus on Citizens Bank ($400) and Huntington ($400) as your next two moves. Both are ChexSystems-only, no monthly fees, and low DD requirements. Want me to walk you through the application strategy?");
   }
 
   // ── Populate user identity from /me ───────────────────────────
