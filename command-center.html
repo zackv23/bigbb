@@ -761,7 +761,7 @@
       <button class="btn btn-grad" onclick="linkBank()">+ Link Bank</button>
     </div>
 
-    <div class="grid-2">
+    <div class="grid-2" id="accounts-grid">
       <div class="card">
         <div class="card-title">Primary Account — Offer Feed Source</div>
         <div class="account-row">
@@ -1998,6 +1998,97 @@
     } catch (_) { /* keep hardcoded fallback */ }
   }
   loadSubscription();
+
+  // ── Linked Banks page from live data ───────────────────────────
+  const _BANK_GRADS = ['var(--grad)', 'linear-gradient(135deg,#1e40af,#2563eb)', 'linear-gradient(135deg,#065f46,#10b981)', 'linear-gradient(135deg,#7c2d12,#ea580c)'];
+  let _linkedBanks = [];
+
+  function _fmtBal(n) {
+    return n == null ? '—' : `$${Number(n).toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+  }
+
+  function _bankCard(b, i) {
+    const name = _esc(b.institution_name || 'Bank');
+    return `
+      <div class="card" id="bank-card-${i}">
+        <div class="card-title">${i === 0 ? 'Primary Account — Offer Feed Source' : 'Linked Account'}</div>
+        <div class="account-row">
+          <div class="account-icon" style="background:${_BANK_GRADS[i % _BANK_GRADS.length]}">${name[0].toUpperCase()}</div>
+          <div>
+            <div class="account-name">${name}</div>
+            <div class="account-sub" id="bank-sub-${i}">${b.account_type ? _esc(b.account_type) : 'Connected'}${b.mask ? ' ••' + _esc(b.mask) : ''}</div>
+          </div>
+          <div class="account-right">
+            <div class="account-bal" id="bank-bal-${i}">—</div>
+            <div class="account-type">Available</div>
+          </div>
+          <span class="status-badge ${b.is_active !== false ? 'green' : 'yellow'}" style="margin-left:8px"><span class="dot"></span>${b.is_active !== false ? 'Active' : 'Inactive'}</span>
+        </div>
+        <div id="bank-accounts-${i}" style="margin-top:12px"></div>
+        <button class="btn btn-ghost" style="margin-top:14px;width:100%;justify-content:center" id="bank-refresh-${i}" onclick="refreshBalances(${i})">↺ Refresh Balances</button>
+      </div>`;
+  }
+
+  async function refreshBalances(i) {
+    const b   = _linkedBanks[i];
+    const btn = document.getElementById(`bank-refresh-${i}`);
+    if (!b || !btn) return;
+    btn.disabled = true;
+    btn.textContent = '↺ Refreshing…';
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/banks/${b.id}/balances`, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) throw new Error(`${res.status}`);
+      const data = await res.json();
+      const accounts = data.accounts || [];
+      const totalAvail = accounts
+        .filter(a => a.type === 'depository')
+        .reduce((s, a) => s + (a.balances?.available ?? 0), 0);
+      document.getElementById(`bank-bal-${i}`).textContent = _fmtBal(totalAvail);
+      document.getElementById(`bank-sub-${i}`).textContent =
+        `${accounts.length} account${accounts.length === 1 ? '' : 's'}`;
+      document.getElementById(`bank-accounts-${i}`).innerHTML = accounts.map((a, j) => `
+        <div class="account-row" style="margin-bottom:${j === accounts.length - 1 ? 0 : 8}px">
+          <div style="width:8px;height:8px;border-radius:50%;background:${a.type === 'depository' ? '#3b82f6' : '#a855f7'};flex-shrink:0"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:600">${_esc(a.name || a.subtype || 'Account')}</div>
+            <div style="font-size:11px;color:var(--muted)">${a.mask ? '••' + _esc(a.mask) : _esc(a.subtype || '')}</div>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#4ade80">${_fmtBal(a.balances?.available ?? a.balances?.current)}</div>
+        </div>`).join('');
+      showToast(`${b.institution_name || 'Bank'} balances refreshed.`);
+    } catch (_) {
+      showToast('Could not refresh balances — try again shortly.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '↺ Refresh Balances';
+    }
+  }
+
+  async function loadLinkedBanks() {
+    if (!_bbbToken) return;
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/banks`, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) return; // keep hardcoded fallback
+      _linkedBanks = await res.json();
+      const grid = document.getElementById('accounts-grid');
+      if (!_linkedBanks.length) {
+        grid.innerHTML = `
+          <div class="card" style="grid-column:1/-1;text-align:center;padding:36px">
+            <div style="font-size:32px;margin-bottom:12px">🔗</div>
+            <div style="font-size:16px;font-weight:700;margin-bottom:8px">No banks linked yet</div>
+            <p style="font-size:13px;color:var(--muted);margin:0 auto 4px;max-width:380px;line-height:1.6">Link your first bank to start tracking balances and unlock the autopay scheduler.</p>
+          </div>`;
+        return;
+      }
+      grid.innerHTML = _linkedBanks.map((b, i) => _bankCard(b, i)).join('');
+      _linkedBanks.forEach((_, i) => refreshBalances(i));
+    } catch (_) { /* keep hardcoded fallback */ }
+  }
+  loadLinkedBanks();
 
   async function openBillingPortal() {
     if (!_bbbToken) { showToast('Sign in first.'); return; }
