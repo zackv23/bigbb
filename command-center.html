@@ -1026,7 +1026,7 @@
         <div style="display:flex;gap:10px;align-items:flex-start">
           <div style="width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">🤖</div>
           <div style="background:var(--card2);border:1px solid var(--border);border-radius:14px 14px 14px 2px;padding:14px 16px;max-width:85%">
-            <div style="font-size:13px;line-height:1.65;color:var(--sub)">
+            <div style="font-size:13px;line-height:1.65;color:var(--sub)" id="agent-greeting">
               Hey James! 👋 I've reviewed your profile. You have <strong style="color:var(--text)">$2,000 available capital</strong>, 2 linked banks (Chase excluded from feed), and your SoFi autopay cycle is in progress.<br><br>
               My top recommendation: <strong style="color:var(--text)">Citizens Bank Checking — $400 bonus</strong>. It's your highest ROIC at 12.6% APY equivalent, requires just $1,000 DD in 60 days, and uses ChexSystems (not EWS) — you're clean there.<br><br>
               What would you like to know?
@@ -1918,8 +1918,8 @@
       });
       if (!res.ok) return;
       const u = await res.json();
-      const first = u.first_name || '';
-      const last  = u.last_name  || '';
+      const first = u.first_name || (u.full_name || '').trim().split(/\s+/)[0] || '';
+      const last  = u.last_name  || (u.full_name || '').trim().split(/\s+/).slice(1).join(' ') || '';
       const lastI = last ? last[0].toUpperCase() + '.' : '';
       const display = [first, lastI].filter(Boolean).join(' ') || u.email || '—';
       const avatar  = first ? first[0].toUpperCase() : (u.email?.[0]?.toUpperCase() || '?');
@@ -1928,6 +1928,8 @@
       document.getElementById('settings-name').textContent  = display;
       document.getElementById('settings-avatar').textContent = avatar;
       document.getElementById('settings-email').textContent = u.email || '—';
+      _userFirstName = first;
+      updateAgentGreeting();
     } catch (_) {}
   }
   initUser();
@@ -1952,6 +1954,40 @@
 
   let _campaignsCache = [];
   let _banksCache     = [];
+  let _userFirstName  = '';
+  let _overviewLoaded = false;
+
+  // Rewrite the AI Agent greeting from live data (approved GOD-file change).
+  // Only replaces the hardcoded copy once real data has loaded.
+  function updateAgentGreeting() {
+    if (!_overviewLoaded) return;
+    const el = document.getElementById('agent-greeting');
+    if (!el) return;
+    const strong = s => `<strong style="color:var(--text)">${_esc(s)}</strong>`;
+    const hello  = _userFirstName ? `Hey ${_esc(_userFirstName)}! 👋` : 'Hey there! 👋';
+
+    const completed = _campaignsCache.filter(c => c.status === 'COMPLETED');
+    const active    = _campaignsCache.filter(c => c.status === 'IN_PROGRESS' || c.status === 'QUEUED');
+    const earned    = completed.reduce((s, c) => s + Number(c.bonus_amount || 0), 0);
+
+    let stats;
+    if (!_campaignsCache.length && !_banksCache.length) {
+      stats = `You haven't started a campaign or linked a bank yet — once you do, I'll track everything from here.`;
+    } else {
+      const parts = [];
+      if (earned)            parts.push(`${strong(`$${earned.toLocaleString()} earned`)} from ${completed.length} completed offer${completed.length === 1 ? '' : 's'}`);
+      if (active.length)     parts.push(`${strong(`${active.length} campaign${active.length === 1 ? '' : 's'}`)} in progress`);
+      if (_banksCache.length) parts.push(`${strong(`${_banksCache.length} bank${_banksCache.length === 1 ? '' : 's'}`)} linked via Plaid`);
+      stats = `I've reviewed your profile. You have ${parts.join(', ')}.`;
+    }
+
+    const top = _topOffers(1)[0];
+    const rec = top
+      ? `My top recommendation: ${strong(`${top.bank} — $${top.bonus} bonus`)}. It requires ${_esc(top.req)} and uses ${_esc(top.ews)} reporting.<br><br>`
+      : '';
+
+    el.innerHTML = `${hello} ${stats}<br><br>${rec}What would you like to know?`;
+  }
 
   async function loadOverview() {
     if (!_bbbToken) return;
@@ -1966,6 +2002,8 @@
       const banks     = bRes.ok ? await bRes.json() : [];
       _campaignsCache = campaigns;
       _banksCache     = banks;
+      _overviewLoaded = true;
+      updateAgentGreeting();
 
       const completed = campaigns.filter(c => c.status === 'COMPLETED');
       const active    = campaigns.filter(c => c.status === 'IN_PROGRESS' || c.status === 'QUEUED');
