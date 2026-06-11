@@ -1781,15 +1781,53 @@
   }
 
   // ── AI chat ────────────────────────────────────────────────────
+  // Canned replies fire only when the live agent is unreachable. They must
+  // never invent personal data — compute from cached live data when we have
+  // it, otherwise give honest, generic guidance.
+  function _offerLine(o, n) {
+    return `${n}. ${o.bank} — $${o.bonus} bonus, ${o.req}, ${o.ews} reporting`;
+  }
+
+  function _topOffers(count) {
+    const myBanks = new Set(_campaignsCache.map(c => c.bank_name.toLowerCase()));
+    return OFFERS
+      .filter(o => !o.claimed && !myBanks.has(o.bank.toLowerCase()))
+      .sort((a, b) => b.bonus - a.bonus)
+      .slice(0, count);
+  }
+
   const AI_REPLIES = {
-    'Which 3 banks should I open next?':
-      "Based on your $2,000 capital and 2 open accounts, here's your optimal stack:\n\n1. Citizens Bank — $400 bonus, 60 days, ChexSystems only, lowest friction\n2. Huntington Bank — $400 bonus, 90 days, no monthly fee, easy DD requirement\n3. TD Bank — $400 bonus, 60 days, only $2,500 DD required\n\nTotal potential: $1,200 in ~90 days. Want me to set up autopay schedules for all three?",
-    'What is my current ROIC?':
-      "Here's your portfolio breakdown:\n\n• Chase Total Checking: $300 / $500 DD capital = 60% ROIC (8.2% APY) ✓ Earned\n• SoFi Checking (active): $300 / $500 DD = 60% ROIC projected — cycle 2/18\n• Bank of America (pending): $400 / $1,000 = 40% ROIC projected\n\nBlended portfolio ROIC: 52.4% on $2,000 deployed. Annualized: ~10.8% APY equivalent.",
-    'When will my waiver reset?':
-      "Your current 91-day waiver was triggered by the Chase Total Checking signup. It expires on August 12, 2026 (71 days from today).\n\nTo reset it to a fresh 91 days: sign up for any new offer through the platform. I'd recommend Citizens Bank Checking — that signup would push your waiver to mid-August and the $400 bonus would post before then.",
-    'Am I safe to open Wells Fargo?':
-      "⚠️ Heads up — our policy monitor flagged Wells Fargo 3 hours ago. They just tightened their ChexSystems requirement from 12 months to 24 months with no derogatory marks.\n\nBefore applying, I'd recommend checking your ChexSystems report (free via AnnualCreditReport.com). If you're clean for 24+ months, you're fine. If not, I'd skip Wells Fargo and go Citizens Bank instead — same $400 bonus, no EWS/ChexSystems issues for most members.",
+    'Which 3 banks should I open next?': () => {
+      const top = _topOffers(3);
+      if (!top.length) return "You've already started campaigns for every offer in the current feed — nice work. New offers land regularly; hit ↺ Refresh on the Live Offers page, and I'll re-rank as soon as they arrive.";
+      const total = top.reduce((s, o) => s + o.bonus, 0);
+      const skipped = _campaignsCache.length ? `\n\n(I've excluded banks where you already have a campaign running.)` : '';
+      return `Here are the top ${top.length} offers in your feed right now, ranked by bonus:\n\n${top.map((o, i) => _offerLine(o, i + 1)).join('\n')}\n\nCombined potential: $${total.toLocaleString()}. A good rule: stagger signups 2–3 weeks apart so the direct-deposit cycles don't overlap and your application velocity stays low.${skipped}\n\nWant to start one? Head to Live Offers and hit Sign Up — the autopay scheduler handles the DD cycles.`;
+    },
+
+    'What is my current ROIC?': () => {
+      if (!_campaignsCache.length) {
+        return "ROIC here means bonus earned ÷ capital you have to cycle through the account. Example: a $400 bonus requiring $1,000 of direct deposits is a 40% return on that $1,000 — far beyond any savings APY, because the same capital is reusable across offers.\n\nYou don't have any campaigns yet, so there's nothing to measure — claim your first offer on the Live Offers page and I'll start tracking your real ROIC.";
+      }
+      const lines = _campaignsCache.map(c => {
+        const roic = c.required_deposit_volume > 0 ? Math.round(c.bonus_amount / c.required_deposit_volume * 100) : 0;
+        const tag  = c.status === 'COMPLETED' ? '✓ Earned' : c.status === 'IN_PROGRESS' ? 'In progress' : c.status === 'QUEUED' ? 'Queued' : c.status;
+        return `• ${c.bank_name}: $${Number(c.bonus_amount).toLocaleString()} / $${Number(c.required_deposit_volume).toLocaleString()} DD = ${roic}% ROIC — ${tag}`;
+      });
+      const earned   = _campaignsCache.filter(c => c.status === 'COMPLETED').reduce((s, c) => s + Number(c.bonus_amount), 0);
+      const deployed = _campaignsCache.reduce((s, c) => s + Number(c.required_deposit_volume), 0);
+      const blended  = deployed > 0 ? Math.round(_campaignsCache.reduce((s, c) => s + Number(c.bonus_amount), 0) / deployed * 100) : 0;
+      return `Your portfolio:\n\n${lines.join('\n')}\n\nEarned so far: $${earned.toLocaleString()} · Blended ROIC: ${blended}% on $${deployed.toLocaleString()} of deposit volume. Remember the same capital recycles across offers, so your effective return on cash is higher than the blended figure.`;
+    },
+
+    'When will my waiver reset?': () =>
+      "How the waiver works: every offer you sign up for through BigBankBonus waives your $49/mo Pro fee for 91 days from that signup. Each new signup resets the clock to a fresh 91 days — keep one campaign starting per quarter and you never pay the fee.\n\nYour current waiver date is on the Subscription page (left sidebar). If it's getting close, the fastest reset is claiming any offer on the Live Offers page — the waiver applies the moment the campaign starts, before the bonus even posts.",
+
+    'Am I safe to open Wells Fargo?': () => {
+      const alt = _topOffers(1)[0];
+      const altLine = alt ? `\n\nLower-friction alternative in your feed: ${alt.bank} — $${alt.bonus} bonus, ${alt.req}, ${alt.ews} reporting.` : '';
+      return `Three things determine that, and I can't see them from here:\n\n1. ChexSystems history — Wells Fargo screens it. Pull your report free at chexsystems.com (or annualcreditreport.com) and look for recent closures or derogatory marks.\n2. Application velocity — more than ~3 new bank accounts in 6 months gets denials regardless of history. Space signups 2–3 weeks apart.\n3. Prior WF relationship — most WF bonuses exclude anyone who held a WF checking account in the last 12 months.\n\nIf you're clean on all three, you're generally fine.${altLine}`;
+    },
   };
 
   let _chatConvId = localStorage.getItem('bbb_chat_conv_id') || null;
@@ -1857,8 +1895,18 @@
     } catch (_) { /* fall through to canned reply */ }
 
     document.getElementById(typingId)?.remove();
-    _appendAgentBubble(reply || AI_REPLIES[msg] ||
-      "Great question! Based on your current profile — 2 open accounts, $2k capital, Chase excluded from offer feed, and 71-day waiver active — I'd focus on Citizens Bank ($400) and Huntington ($400) as your next two moves. Both are ChexSystems-only, no monthly fees, and low DD requirements. Want me to walk you through the application strategy?");
+    if (!reply) {
+      const canned = AI_REPLIES[msg];
+      reply = typeof canned === 'function' ? canned() : canned;
+    }
+    if (!reply) {
+      const top = _topOffers(2);
+      const offerLine = top.length
+        ? ` In the meantime, the strongest offers in your feed are ${top.map(o => `${o.bank} ($${o.bonus})`).join(' and ')} — details on the Live Offers page.`
+        : '';
+      reply = `I'm having trouble reaching the live AI agent right now, so I can't give you a personalized answer to that one.${offerLine} Try me again in a few minutes, or email support@bigbankbonus.com if it's urgent.`;
+    }
+    _appendAgentBubble(reply);
   }
 
   // ── Populate user identity from /me ───────────────────────────
@@ -1902,6 +1950,9 @@
     return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
   }
 
+  let _campaignsCache = [];
+  let _banksCache     = [];
+
   async function loadOverview() {
     if (!_bbbToken) return;
     const hdrs = { headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }) };
@@ -1913,6 +1964,8 @@
       if (!cRes.ok) return; // keep hardcoded fallback
       const campaigns = await cRes.json();
       const banks     = bRes.ok ? await bRes.json() : [];
+      _campaignsCache = campaigns;
+      _banksCache     = banks;
 
       const completed = campaigns.filter(c => c.status === 'COMPLETED');
       const active    = campaigns.filter(c => c.status === 'IN_PROGRESS' || c.status === 'QUEUED');
