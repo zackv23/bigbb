@@ -1563,7 +1563,36 @@
   }
 
   // ── Schedule wizard ────────────────────────────────────────────
+  async function loadSchedAccounts() {
+    if (!_bbbToken) return;
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/banks`, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) return; // keep hardcoded fallback
+      const accounts = (await res.json()).filter(a => a.is_active !== false);
+      const sel = document.getElementById('sched-bank-acct');
+      sel.innerHTML = '<option value="">— Select linked account —</option>';
+      if (!accounts.length) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.disabled = true;
+        opt.textContent = 'No linked accounts — use + Link Bank first';
+        sel.appendChild(opt);
+        return;
+      }
+      accounts.forEach(a => {
+        const label = [a.institution_name || 'Bank', a.account_name || a.account_type || '', a.mask ? `••${a.mask}` : ''].join(' ').replace(/\s+/g, ' ').trim();
+        const opt = document.createElement('option');
+        opt.value = label;
+        opt.textContent = label;
+        sel.appendChild(opt);
+      });
+    } catch (_) { /* keep hardcoded fallback */ }
+  }
+
   function openScheduleWizard() {
+    loadSchedAccounts();
     // Populate offer dropdown from OFFERS array
     const sel = document.getElementById('sched-offer');
     sel.innerHTML = '<option value="">— Select offer —</option>';
