@@ -639,7 +639,7 @@
     <div class="section-hdr">
       <div>
         <h2>Subscription & Billing</h2>
-        <div class="section-sub">Pro Monthly — ACH billing via Plaid</div>
+        <div class="section-sub" id="sub-section-sub">Pro Monthly — ACH billing via Plaid</div>
       </div>
     </div>
 
@@ -650,10 +650,10 @@
         <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
           <div style="width:50px;height:50px;border-radius:14px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💳</div>
           <div>
-            <div style="font-size:18px;font-weight:800">Pro Monthly</div>
-            <div style="font-size:13px;color:var(--muted)">$49/mo via ACH · No credit card</div>
+            <div style="font-size:18px;font-weight:800" id="sub-plan-name">Pro Monthly</div>
+            <div style="font-size:13px;color:var(--muted)" id="sub-plan-desc">$49/mo via ACH · No credit card</div>
           </div>
-          <span class="status-badge green" style="margin-left:auto"><span class="dot"></span>Active</span>
+          <span class="status-badge green" style="margin-left:auto" id="sub-status-badge"><span class="dot"></span>Active</span>
         </div>
 
         <div style="display:flex;flex-direction:column;gap:8px">
@@ -663,7 +663,7 @@
           </div>
           <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border)">
             <span style="font-size:13px;color:var(--muted)">Monthly amount</span>
-            <span style="font-size:13px;font-weight:600">$49.00</span>
+            <span style="font-size:13px;font-weight:600" id="sub-amount">$49.00</span>
           </div>
           <div style="display:flex;justify-content:space-between;padding:10px 14px;background:rgba(34,197,94,.06);border-radius:10px;border:1px solid rgba(34,197,94,.2)">
             <span style="font-size:13px;color:var(--muted)">Waiver status</span>
@@ -671,11 +671,11 @@
           </div>
           <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border)">
             <span style="font-size:13px;color:var(--muted)">Next billing (if waiver lapses)</span>
-            <span style="font-size:13px;font-weight:600">Aug 12, 2026</span>
+            <span style="font-size:13px;font-weight:600" id="sub-next-billing">Aug 12, 2026</span>
           </div>
         </div>
 
-        <button class="btn btn-ghost" style="margin-top:16px;width:100%;justify-content:center" onclick="showToast('Cancellation request submitted…')">
+        <button class="btn btn-ghost" style="margin-top:16px;width:100%;justify-content:center" id="sub-manage-btn" onclick="openBillingPortal()">
           Cancel Subscription
         </button>
       </div>
@@ -1927,6 +1927,64 @@
     } catch (_) { /* keep hardcoded fallback */ }
   }
   loadOverview();
+
+  // ── Subscription & Billing from live data ──────────────────────
+  const _TIER_INFO = {
+    free:       { name: 'Free Plan',   desc: 'No card on file',              amount: '$0.00'  },
+    pro:        { name: 'Pro Monthly', desc: '$49/mo via ACH · No credit card', amount: '$49.00' },
+    enterprise: { name: 'Enterprise',  desc: 'Custom pricing',               amount: 'Custom' },
+  };
+
+  async function loadSubscription() {
+    if (!_bbbToken) return;
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/billing/subscription`, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) return; // keep hardcoded fallback
+      const sub  = await res.json();
+      const tier = _TIER_INFO[sub.tier] || { name: sub.tier, desc: '', amount: '—' };
+      const isActive = sub.status === 'active';
+
+      document.getElementById('sub-plan-name').textContent = tier.name;
+      document.getElementById('sub-plan-desc').textContent = tier.desc;
+      document.getElementById('sub-amount').textContent    = tier.amount;
+      document.getElementById('sub-section-sub').textContent =
+        `${tier.name}${isActive ? ' — ACH billing via Plaid' : ''}`;
+
+      const badge = document.getElementById('sub-status-badge');
+      badge.className = `status-badge ${isActive ? 'green' : 'yellow'}`;
+      badge.innerHTML = `<span class="dot"></span>${isActive ? 'Active' : 'Inactive'}`;
+      badge.style.marginLeft = 'auto';
+
+      document.getElementById('sub-next-billing').textContent = sub.period_end
+        ? new Date(sub.period_end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+        : '—';
+
+      const btn = document.getElementById('sub-manage-btn');
+      if (sub.tier === 'free') {
+        btn.textContent = 'Upgrade to Pro';
+        btn.onclick = () => showPage('offers', document.querySelectorAll('.nav-item')[1]);
+      }
+    } catch (_) { /* keep hardcoded fallback */ }
+  }
+  loadSubscription();
+
+  async function openBillingPortal() {
+    if (!_bbbToken) { showToast('Sign in first.'); return; }
+    showToast('Opening billing portal…');
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/billing/portal`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.url) { window.location.href = data.url; return; }
+      showToast(data.detail || 'Billing portal unavailable — contact support@bigbankbonus.com.');
+    } catch (_) {
+      showToast('Connection error — please try again.');
+    }
+  }
 
   // ── Link a new bank via Plaid ──────────────────────────────────
   async function linkBank() {
