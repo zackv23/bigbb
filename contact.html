@@ -170,15 +170,55 @@
 </footer>
 
 <script>
-  function submitContact(e) {
+  const BBB_API = window.BBB_API_BASE || 'http://localhost:8000';
+
+  function _getCsrfToken() {
+    const match = document.cookie.split('; ').find(row => row.startsWith('csrf_token='));
+    return match ? decodeURIComponent(match.split('=')[1]) : '';
+  }
+
+  async function submitContact(e) {
     e.preventDefault();
     const btn = document.getElementById('c-submit');
     btn.disabled = true;
     btn.textContent = 'Sending…';
-    setTimeout(() => {
-      document.getElementById('c-success').classList.add('show');
-      btn.textContent = 'Sent ✓';
-    }, 900);
+
+    try {
+      // Ensure CSRF token cookie is set by making a GET request first
+      await fetch(`${BBB_API}/docs`, { credentials: 'include' }).catch(() => {});
+
+      let csrfToken = _getCsrfToken();
+
+      const res = await fetch(`${BBB_API}/api/v1/contact/submit`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
+        },
+        body: JSON.stringify({
+          name: document.getElementById('c-name').value,
+          email: document.getElementById('c-email').value,
+          subject: document.getElementById('c-subject').value,
+          message: document.getElementById('c-message').value,
+        }),
+      });
+
+      if (res.ok) {
+        document.getElementById('c-success').classList.add('show');
+        btn.textContent = 'Sent ✓';
+        document.querySelector('form').reset();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        btn.textContent = 'Send Message';
+        btn.disabled = false;
+        alert(err.detail || 'Failed to send message. Please try again.');
+      }
+    } catch (_) {
+      btn.textContent = 'Send Message';
+      btn.disabled = false;
+      alert('Failed to send message. Please try again.');
+    }
   }
 </script>
 </body>
