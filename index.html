@@ -87,6 +87,25 @@
     .nav-links { display: flex; align-items: center; gap: 28px; list-style: none; }
     .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 500; transition: color .2s; }
     .nav-links a:hover { color: var(--text); }
+
+    /* ── Dropdown ── */
+    .nav-links li { position: relative; }
+    .nav-links li .dropdown {
+      position: absolute; top: 100%; left: 50%; transform: translateX(-50%) translateY(10px);
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 12px; min-width: 220px; opacity: 0; pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      box-shadow: 0 10px 40px rgba(0,0,0,.5);
+    }
+    .nav-links li:hover .dropdown { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
+    .dropdown a {
+      display: flex; align-items: center; gap: 10px; padding: 10px;
+      border-radius: 8px; font-size: 13px; color: var(--muted);
+      transition: background .15s, color .15s; text-align: left;
+    }
+    .dropdown a:hover { background: rgba(255,255,255,.05); color: #fff; }
+    .dropdown .icon { font-size: 15px; width: 20px; text-align: center; }
+
     .nav-cta { padding: 9px 22px; border-radius: 10px; font-size: 14px; }
     @media(max-width:680px) { .nav-links { display: none; } }
 
@@ -527,7 +546,7 @@
 
 <!-- ── Navigation ────────────────────────────────────────────── -->
 <nav>
-  <a class="nav-logo" href="#">
+  <a class="nav-logo" href="index.html">
     <div class="logo-mark">B</div>
     <span>BigBankBonus</span>
   </a>
@@ -560,7 +579,7 @@
     <button class="grad-btn primary" onclick="openModal('bank_link')">
       Get Access — Connect Your Bank →
     </button>
-    <button class="secondary" onclick="document.getElementById('features').scrollIntoView({behavior:'smooth'})">
+    <button class="secondary" onclick="document.getElementById('how').scrollIntoView({behavior:'smooth'})">
       See How It Works
     </button>
   </div>
@@ -666,51 +685,75 @@
 <section id="pricing">
   <div class="container">
     <div class="section-label fade-in" style="text-align:center">Transparent pricing</div>
-    <h2 class="section-title fade-in" style="text-align:center;margin-bottom:8px">Simple. No surprises.</h2>
-    <p class="fade-in" style="text-align:center;color:var(--muted);font-size:16px;margin-bottom:0">Start free — no credit card required</p>
+    <h2 class="section-title fade-in" style="text-align:center;margin-bottom:8px">Pay for what you earn.</h2>
+    <p class="fade-in" style="text-align:center;color:var(--muted);font-size:16px;margin-bottom:0">Start free — $49/mo discount credit applies to campaigns. <span style="background:#c9a96e;color:#0f172a;padding:2px 6px;border-radius:4px;font-size:12px;font-weight:600">Tax included through 1/1/2027</span></p>
 
     <div class="pricing-grid">
-      <!-- Free Plan -->
+      <!-- Trial Plan -->
       <div class="plan-card fade-in">
-        <div class="plan-name">Starter</div>
-        <div class="plan-desc">Browse offers and explore the platform at no cost.</div>
-        <div class="plan-price">$0<span>/forever</span></div>
+        <div class="plan-name">Trial</div>
+        <div class="plan-desc">Explore the platform and custom offers risk-free.</div>
+        <div class="plan-price">$0<span>/3 days</span></div>
         <div style="height:52px"></div>
         <ul class="plan-features">
-          <li><span class="check">✓</span> Browse 5 bonus offers</li>
-          <li><span class="check">✓</span> Manual bank tracking</li>
-          <li><span class="check">✓</span> Basic filters</li>
-          <li><span class="cross dim">✗</span> <span class="dim">Autopay DD Scheduler</span></li>
-          <li><span class="cross dim">✗</span> <span class="dim">AI Bonus Agent</span></li>
-          <li><span class="cross dim">✗</span> <span class="dim">$400+ Personalized Feed</span></li>
-          <li><span class="cross dim">✗</span> <span class="dim">ROIC Calculator</span></li>
+          <li><span class="check">✓</span> Full Command Center access</li>
+          <li><span class="check">✓</span> Campaigns (locked preview)</li>
+          <li><span class="check">✓</span> Custom Offers page (200+ live)</li>
+          <li><span class="check">✓</span> Big Bank Bonus Report</li>
+          <li><span class="check">✓</span> 72-Month Planner</li>
+          <li><span class="cross dim">✗</span> <span class="dim">Run campaigns</span></li>
+          <li><span class="cross dim">✗</span> <span class="dim">AI Agent / SMS alerts</span></li>
         </ul>
-        <button class="plan-btn outline" onclick="openModal('free')">Get Started Free</button>
+        <button class="plan-btn outline" onclick="openModal('trial')">Start Free Trial</button>
       </div>
 
-      <!-- Pro Plan -->
+      <!-- Member Plan (Subscription) -->
       <div class="plan-card featured fade-in">
-        <div class="plan-badge">3-Day Free Trial</div>
-        <div class="plan-name">Pro Earner</div>
-        <div class="plan-desc">Full automation, live offers, and your 91-day waiver opportunity.</div>
+        <div class="plan-badge">Membership</div>
+        <div class="plan-name">Member</div>
+        <div class="plan-desc">Discount credit per campaign. Max 5 per 91-day window.</div>
         <div class="plan-price grad-text">$49<span style="-webkit-text-fill-color:var(--muted)">/mo</span></div>
-        <div class="plan-note">After 3-day free trial via bank link</div>
-        <div class="plan-achnote">Charged via ACH from your linked bank — no credit card</div>
+        <div class="plan-note">Credit card only</div>
+        <div class="plan-achnote">Applies $49 credit to each campaign (max 5 / 91 days)</div>
         <div class="waiver-box">
-          <span class="gift">🎁</span>
-          <p><strong>91-day fee waiver:</strong> Sign up for any one bank bonus offer through the platform and your $49/mo fee is automatically waived for 91 days.</p>
+          <span class="gift">💳</span>
+          <p><strong>Pay what you earn:</strong> Your $49/mo credit reduces campaign fees from $148 to $99. Unused credit lapses monthly. Campaigns beyond 5 per 91 days run at full $148.</p>
         </div>
         <ul class="plan-features">
-          <li><span class="check">✓</span> All Live DoC Deals (200+)</li>
-          <li><span class="check">✓</span> $400+ Personalized Offer Feed</li>
-          <li><span class="check">✓</span> Autopay DD Scheduler</li>
+          <li><span class="check">✓</span> $49/mo campaign discount</li>
+          <li><span class="check">✓</span> Unlock all campaigns</li>
           <li><span class="check">✓</span> AI Bonus Agent (GPT-4o)</li>
-          <li><span class="check">✓</span> Plaid Bank Linking</li>
-          <li><span class="check">✓</span> ROIC &amp; APY Calculator</li>
+          <li><span class="check">✓</span> Autopay DD Scheduler</li>
+          <li><span class="check">✓</span> Account Monitor</li>
+          <li><span class="check">✓</span> SMS Alerts</li>
           <li><span class="check">✓</span> Priority Support</li>
         </ul>
-        <button class="grad-btn plan-btn" onclick="openModal('trial')">Start 3-Day Free Trial →</button>
-        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px">No credit card · Cancel before day 4 to pay nothing</p>
+        <button class="grad-btn plan-btn" onclick="openModal('trial')">Start Trial & Subscribe →</button>
+        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px">Charged on day 4 after trial. Cancel anytime.</p>
+      </div>
+
+      <!-- Per-Campaign Plan -->
+      <div class="plan-card fade-in">
+        <div class="plan-name">Per Campaign</div>
+        <div class="plan-desc">Automate one bank bonus from start to finish.</div>
+        <div class="plan-price grad-text">$99<span style="-webkit-text-fill-color:var(--muted)">/$148 list</span></div>
+        <div class="plan-note">After $49 credit applied</div>
+        <div class="plan-achnote">ACH at checkout + $5,000 working capital</div>
+        <div class="waiver-box">
+          <span class="gift">🏦</span>
+          <p><strong>What's included:</strong> AI bank signup, $100 seed deposit, new account monitor, live DD scheduler, and everything you need to earn the bonus.</p>
+        </div>
+        <ul class="plan-features">
+          <li><span class="check">✓</span> AI bank account setup</li>
+          <li><span class="check">✓</span> $100 seed deposit</li>
+          <li><span class="check">✓</span> Account Monitor (live)</li>
+          <li><span class="check">✓</span> DD Auto-Scheduler (jitter)</li>
+          <li><span class="check">✓</span> Plaid verification ($5k gate)</li>
+          <li><span class="check">✓</span> Invoice &amp; SMS alerts</li>
+          <li><span class="check">✓</span> ACH transfer orchestration</li>
+        </ul>
+        <button class="plan-btn outline" onclick="openModal('trial')">Pick a Campaign</button>
+        <p style="font-size:12px;color:var(--muted);text-align:center;margin-top:10px">Requires $5,000+ verified balance. Ineligible accounts never charged.</p>
       </div>
     </div>
 
@@ -720,19 +763,19 @@
       <div class="billing-steps">
         <div class="billing-step">
           <div class="num">1</div>
-          <p>Connect your bank via Plaid — takes 60 seconds, bank-grade encryption throughout.</p>
+          <p>Register & KYC, start your 3-day free trial. Explore campaigns (locked), custom offers, Big Bank Bonus Report, and 72-Month Planner — zero cost.</p>
         </div>
         <div class="billing-step">
           <div class="num">2</div>
-          <p>Your 3-day free trial starts immediately. Explore all Pro features at zero cost.</p>
+          <p>Pick a campaign. Checkout verifies your $5,000+ balance via Plaid (ineligible accounts are never charged). Sign the ACH PPD authorization form.</p>
         </div>
         <div class="billing-step">
           <div class="num">3</div>
-          <p>On day 4, $49/mo is automatically debited from your linked bank via ACH. Cancel before then to pay absolutely nothing.</p>
+          <p>Pay $49/mo on your credit card (your only card charge ever). This subscribes you and provides a $49 campaign discount. Campaign fee: $99 via ACH ($148 list − $49 credit).</p>
         </div>
         <div class="billing-step">
           <div class="num">4</div>
-          <p>Sign up for any one bank bonus offer through BigBankBonus → your fee is waived for 91 days. The platform pays for itself.</p>
+          <p>AI opens your new bank account, $100 seed lands, account monitor goes live. Your $5,000 working capital moves via Fidelity rail. Campaign runs automatically. Max 5 campaigns per 91-day window.</p>
         </div>
       </div>
     </div>
@@ -858,7 +901,7 @@
         <h3>Marketing</h3>
         <ul>
           <li>
-            <a href="#"><span class="sm-icon">🏠</span> Home</a>
+            <a href="index.html"><span class="sm-icon">🏠</span> Home</a>
             <span class="sm-desc">Landing page — bonuses, features, pricing</span>
           </li>
           <li>
@@ -884,7 +927,7 @@
         <h3>Platform</h3>
         <ul>
           <li>
-            <a href="#careers"><span class="sm-icon">🚀</span> Get Started</a>
+            <a href="javascript:void(0)" onclick="openModal('free')"><span class="sm-icon">🚀</span> Get Started</a>
             <span class="sm-desc">Sign in or create your account</span>
           </li>
           <li>
@@ -892,11 +935,11 @@
             <span class="sm-desc">Dashboard — overview, offers, scheduler</span>
           </li>
           <li>
-            <a href="command-center.html"><span class="sm-icon">🏦</span> Live Offers</a>
+            <a href="command-center.html#offers"><span class="sm-icon">🏦</span> Live Offers</a>
             <span class="sm-desc">Bank bonus opportunities filtered by ROI</span>
           </li>
           <li>
-            <a href="command-center.html"><span class="sm-icon">📅</span> Autopay Scheduler</a>
+            <a href="command-center.html#scheduler"><span class="sm-icon">📅</span> Autopay Scheduler</a>
             <span class="sm-desc">AI-powered ACH deposit scheduler</span>
           </li>
         </ul>
@@ -907,10 +950,10 @@
         <ul>
           <li>
             <a href="#careers"><span class="sm-icon">💼</span> Careers</a>
-            <span class="sm-desc">Sign in or join the platform</span>
+            <span class="sm-desc">Join our team or the platform</span>
           </li>
           <li>
-            <a href="#sitemap"><span class="sm-icon">🗺️</span> Site Map</a>
+            <a href="sitemap.html"><span class="sm-icon">🗺️</span> Site Map</a>
             <span class="sm-desc">You are here</span>
           </li>
         </ul>
@@ -1043,7 +1086,7 @@
     const payload = JSON.parse(atob(b64.replace(/-/g,'+').replace(/_/g,'/')));
     careersShowAlert(`Signing in as ${payload.email}…`, 'success');
     try {
-      const res = await fetch(BBB_API + '/api/v1/auth/google/verify', {
+      const res = await fetch(BBB_API + '/api/v1/auth/oauth/google/verify', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ credential }),
       });
