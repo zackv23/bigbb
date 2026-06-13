@@ -154,7 +154,9 @@
       </div>
       <button type="submit" class="submit-btn" id="c-submit">Send Message</button>
       <div class="success-msg" id="c-success">
-        ✓ Message sent! We'll get back to you at your email address within one business day.
+        <div style="font-weight: 700; margin-bottom: 8px;">✓ Message received!</div>
+        <p style="margin-bottom: 12px;">Our support team will follow up by email. Below is an instant reply from our AI Support Agent:</p>
+        <div style="padding: 16px; background: rgba(255,255,255,0.04); border: 1px solid var(--border); border-radius: 12px; font-size: 13.5px; color: var(--muted); line-height: 1.6; white-space: pre-wrap;" id="c-reply-text"></div>
       </div>
     </form>
   </div>
@@ -170,7 +172,8 @@
 </footer>
 
 <script>
-  const BBB_API = window.BBB_API_BASE || 'http://localhost:8000';
+  const _isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  const BBB_API = (window.BBB_API_BASE || (_isLocal ? 'http://localhost:8000' : 'https://bigbb-api-prod.onrender.com')).replace(/\/$/, '');
 
   function _getCsrfToken() {
     const match = document.cookie.split('; ').find(row => row.startsWith('csrf_token='));
@@ -189,7 +192,7 @@
 
       let csrfToken = _getCsrfToken();
 
-      const res = await fetch(`${BBB_API}/api/v1/contact/submit`, {
+      const res = await fetch(`${BBB_API}/api/v1/agents/support/contact`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -205,6 +208,9 @@
       });
 
       if (res.ok) {
+        const data = await res.json();
+        const replyText = data.reply || "Thank you for reaching out. We have received your message and will review it shortly.";
+        document.getElementById('c-reply-text').textContent = replyText;
         document.getElementById('c-success').classList.add('show');
         btn.textContent = 'Sent ✓';
         document.querySelector('form').reset();
