@@ -1374,6 +1374,15 @@
     return { 'Content-Type': 'application/json', 'X-CSRF-Token': token, ...extra };
   }
 
+  // Wrapper: always send cookies cross-origin so CSRF double-submit works (localhost:5500 → :8000)
+  const _rawFetch = window.fetch.bind(window);
+  function _apiFetch(url, opts = {}) { return _rawFetch(url, { credentials: 'include', ...opts }); }
+
+  // Prime the csrf_token cookie by hitting any GET on the backend
+  (async () => {
+    try { await _apiFetch(`${BBB_API}/api/v1/banks`); } catch (_) {}
+  })();
+
   // ── KYC pre-screen step ────────────────────────────────────────
   function _fmtDob(el) {
     let v = el.value.replace(/[^\d]/g, '');
@@ -1410,7 +1419,7 @@
       const ssn4 = document.getElementById('kyc-ssn4').value.trim();
       if (!/^\d{4}$/.test(ssn4)) throw new Error('Please enter the last 4 digits of your SSN');
 
-      const res = await fetch(`${BBB_API}/api/v1/kyc/pii`, {
+      const res = await _apiFetch(`${BBB_API}/api/v1/kyc/pii`, {
         method: 'POST',
         headers: _csrfHeaders({ 'Authorization': `Bearer ${_kycToken}` }),
         body: JSON.stringify({
@@ -1515,7 +1524,7 @@
     if (!email) { errEl.textContent = 'Enter your email above first.'; return; }
     errEl.textContent = '';
     try {
-      await fetch(`${BBB_API}/api/v1/auth/forgot-password`, {
+      await _apiFetch(`${BBB_API}/api/v1/auth/forgot-password`, {
         method: 'POST', headers: _csrfHeaders(),
         body: JSON.stringify({ email }),
       });
@@ -1556,7 +1565,7 @@
       let token;
 
       if (mode === 'register') {
-        const regRes = await fetch(`${BBB_API}/api/v1/auth/register`, {
+        const regRes = await _apiFetch(`${BBB_API}/api/v1/auth/register`, {
           method: 'POST',
           headers: _csrfHeaders(),
           body: JSON.stringify({ email, password, full_name: fullName || undefined }),
@@ -1572,7 +1581,7 @@
           throw new Error(err.detail || 'Registration failed. Please try again.');
         }
         // Auto-login after register
-        const loginRes = await fetch(`${BBB_API}/api/v1/auth/login`, {
+        const loginRes = await _apiFetch(`${BBB_API}/api/v1/auth/login`, {
           method: 'POST',
           headers: _csrfHeaders(),
           body: JSON.stringify({ email, password }),
@@ -1581,7 +1590,7 @@
         token = (await loginRes.json()).access_token;
 
       } else {
-        const loginRes = await fetch(`${BBB_API}/api/v1/auth/login`, {
+        const loginRes = await _apiFetch(`${BBB_API}/api/v1/auth/login`, {
           method: 'POST',
           headers: _csrfHeaders(),
           body: JSON.stringify({ email, password }),
@@ -1615,7 +1624,7 @@
     if (_bbbIntent === 'trial') {
       showToast('Redirecting to checkout…');
       try {
-        const res = await fetch(`${BBB_API}/api/v1/billing/checkout-public`, {
+        const res = await _apiFetch(`${BBB_API}/api/v1/billing/checkout-public`, {
           method: 'POST',
           headers: _csrfHeaders(),
           body: JSON.stringify({ email }),
@@ -1634,7 +1643,7 @@
     if (_bbbIntent === 'bank_link') {
       showToast('Loading bank connection…');
       try {
-        const ltRes = await fetch(`${BBB_API}/api/v1/banks/link-token`, {
+        const ltRes = await _apiFetch(`${BBB_API}/api/v1/banks/link-token`, {
           method: 'POST',
           headers: _csrfHeaders({ 'Authorization': `Bearer ${token}` }),
         });
@@ -1645,7 +1654,7 @@
           token: link_token,
           onSuccess: async (public_token, metadata) => {
             showToast('Saving your bank…');
-            const exchRes = await fetch(`${BBB_API}/api/v1/banks/exchange`, {
+            const exchRes = await _apiFetch(`${BBB_API}/api/v1/banks/exchange`, {
               method: 'POST',
               headers: _csrfHeaders({ 'Authorization': `Bearer ${token}` }),
               body: JSON.stringify({
@@ -1659,7 +1668,7 @@
             showToast('Bank linked! Finding best offers…');
             let opps = [];
             try {
-              const oppRes = await fetch(`${BBB_API}/api/v1/campaigns/opportunities`, {
+              const oppRes = await _apiFetch(`${BBB_API}/api/v1/campaigns/opportunities`, {
                 headers: { 'Authorization': `Bearer ${token}` },
               });
               if (oppRes.ok) {
@@ -1759,7 +1768,7 @@
       const deadline = new Date();
       deadline.setDate(deadline.getDate() + (_selectedOffer.deadline_days || 90));
 
-      const res = await fetch(`${BBB_API}/api/v1/campaigns`, {
+      const res = await _apiFetch(`${BBB_API}/api/v1/campaigns`, {
         method: 'POST',
         headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
         body: JSON.stringify({

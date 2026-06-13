@@ -1527,6 +1527,17 @@
     return { 'Content-Type': 'application/json', 'X-CSRF-Token': token, ...extra };
   }
 
+  // Always send cookies cross-origin (localhost:5500 → :8000) for CSRF double-submit to work.
+  // All fetch() calls in this file are automatically covered because we reassign the local `fetch`.
+  const _rawFetch = window.fetch.bind(window);
+  const _apiFetch = (url, opts = {}) => _rawFetch(url, { credentials: 'include', ...opts });
+  // Shadow the in-scope `fetch` so existing call sites don't need individual edits
+  window.fetch = _apiFetch;
+
+  // Prime the csrf_token cookie on load
+  (async () => { try { await _apiFetch(`${BBB_API}/api/v1/banks`); } catch (_) {} })();
+
+
   // ── Offer data ─────────────────────────────────────────────────
   const OFFERS = [
     { bank:'Citizens Bank', initial:'C', bonus:400, req:'$1,000 DD in 60 days', type:'Checking', roic:'12.6%', time:'60 days', ews:'ChexSystems', claimed:false },
