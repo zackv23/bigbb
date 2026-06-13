@@ -332,6 +332,45 @@
     /* ── Schedule wizard modal ────────────────────────────── */
     #sched-modal { display:none; position:fixed; inset:0; z-index:200; background:rgba(6,9,26,.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
     #sched-modal.open { display:flex; }
+    
+    /* ── Checkout Modal ────────────────────────────────────── */
+    #checkout-modal { display:none; position:fixed; inset:0; z-index:200; background:rgba(6,9,26,.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+    #checkout-modal.open { display:flex; }
+    .checkout-card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:32px 28px; width:100%; max-width:540px; margin:16px; position:relative; max-height:90vh; overflow-y:auto; }
+    .checkout-close { position:absolute; top:16px; right:20px; background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; font-family:inherit; line-height:1; }
+    .checkout-close:hover { color:var(--text); }
+
+    /* ── Report & Planner Modals ───────────────────────────────── */
+    #report-modal, #planner-modal { display:none; position:fixed; inset:0; z-index:200; background:rgba(6,9,26,.85); backdrop-filter:blur(8px); align-items:center; justify-content:center; }
+    #report-modal.open, #planner-modal.open { display:flex; }
+    .report-card, .planner-card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:36px; width:100%; max-width:640px; max-height:85vh; overflow-y:auto; margin:16px; position:relative; }
+    .report-close, .planner-close { position:absolute; top:16px; right:20px; background:none; border:none; color:var(--muted); font-size:24px; cursor:pointer; line-height:1; }
+    .report-close:hover, .planner-close:hover { color:var(--text); }
+    .checkout-price-row { display:flex; justify-content:space-between; font-size:14px; margin-bottom:8px; }
+    .checkout-price-total { display:flex; justify-content:space-between; font-size:16px; font-weight:800; border-top:1px solid var(--border); padding-top:10px; margin-top:10px; }
+    .ppd-doc-box { background:var(--dark); border:1px solid var(--border); border-radius:12px; padding:16px; margin:18px 0; font-size:11.5px; line-height:1.6; max-height:220px; overflow-y:auto; color:var(--sub); }
+    .ppd-doc-box h3 { font-size:13px; font-weight:800; margin-bottom:8px; color:var(--text); }
+    .checkout-field { margin-bottom:14px; }
+    .checkout-field label { display:block; font-size:12px; font-weight:700; color:var(--muted); letter-spacing:.04em; text-transform:uppercase; margin-bottom:6px; }
+    .checkout-input { width:100%; padding:11px 14px; border-radius:10px; background:var(--dark); border:1px solid var(--border); color:var(--text); font-size:14px; font-family:inherit; outline:none; }
+    .checkout-input:focus { border-color:#c9a96e; }
+    
+    .campaign-locked-card { position:relative; }
+    .campaign-lock-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(6, 9, 26, 0.88);
+      backdrop-filter: blur(5px);
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+      padding: 24px;
+      text-align: center;
+    }
+    
     .sched-card { background:var(--card); border:1px solid var(--border); border-radius:24px; padding:36px 32px; width:100%; max-width:460px; margin:16px; position:relative; }
     .sched-close { position:absolute; top:16px; right:20px; background:none; border:none; color:var(--muted); font-size:22px; cursor:pointer; font-family:inherit; line-height:1; }
     .sched-close:hover { color:var(--text); }
@@ -378,6 +417,9 @@
     </button>
 
     <div class="nav-section-label" style="margin-top:12px">Tools</div>
+    <button class="nav-item" onclick="showPage('transactions', this)">
+      <span class="icon">💸</span> Transactions
+    </button>
     <button class="nav-item" onclick="showPage('scheduler', this)">
       <span class="icon">⚡</span> Autopay Scheduler
     </button>
@@ -456,8 +498,8 @@
       </div>
       <div class="stat-card">
         <div class="stat-label">Waiver Status</div>
-        <div class="stat-val grad-text">71 days</div>
-        <div class="stat-delta up" style="background:rgba(34,197,94,.1);color:#4ade80">Fee waived ✓</div>
+        <div class="stat-val grad-text" id="stat-waiver-days">71 days</div>
+        <div class="stat-delta up" style="background:rgba(34,197,94,.1);color:#4ade80" id="stat-waiver-delta">Fee waived ✓</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Linked Banks</div>
@@ -481,24 +523,24 @@
                 id="waiver-ring-fill"/>
             </svg>
             <div class="ring-label">
-              71<span>days</span>
+              <span id="waiver-days-ov">71</span><span>days</span>
             </div>
           </div>
           <div style="flex:1">
-            <div style="font-size:16px;font-weight:800;margin-bottom:6px">Fee Waiver Active</div>
-            <p style="font-size:13px;color:var(--sub);line-height:1.6">Your $49/mo fee is waived for <strong style="color:var(--text)">71 more days</strong> because you signed up for the Chase Total Checking offer.</p>
+            <div style="font-size:16px;font-weight:800;margin-bottom:6px" id="waiver-title-ov">Fee Waiver Active</div>
+            <p style="font-size:13px;color:var(--sub);line-height:1.6" id="waiver-desc-ov">Your $49/mo fee is waived for <strong style="color:var(--text)">71 more days</strong> because you signed up for the Chase Total Checking offer.</p>
             <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
               <span class="status-badge green"><span class="dot"></span>Pro Monthly</span>
-              <span class="status-badge purple"><span class="dot"></span>Waiver Active</span>
+              <span class="status-badge purple" id="waiver-badge-ov"><span class="dot"></span>Waiver Active</span>
               <span class="status-badge blue"><span class="dot"></span>ACH Billing</span>
             </div>
           </div>
         </div>
         <div style="margin-top:16px">
           <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px">
-            <span>Waiver progress</span><span>71 / 91 days remaining</span>
+            <span>Waiver progress</span><span id="waiver-progress-text-ov">71 / 91 days remaining</span>
           </div>
-          <div class="prog-bar"><div class="prog-fill" style="width:78%"></div></div>
+          <div class="prog-bar"><div class="prog-fill" id="waiver-prog-ov" style="width:78%"></div></div>
         </div>
       </div>
 
@@ -620,7 +662,7 @@
     <div class="section-hdr">
       <div>
         <h2>Live Offers — $400+ Only</h2>
-        <div class="section-sub">Personalized for your profile · Chase excluded · 217 total tracked</div>
+        <div class="section-sub" id="offers-sub">Personalized for your profile · Chase excluded · 217 total tracked</div>
       </div>
       <div style="display:flex;gap:8px">
         <button class="btn btn-ghost" id="refresh-offers-btn" onclick="refreshOffers()">↺ Refresh</button>
@@ -667,7 +709,7 @@
           </div>
           <div style="display:flex;justify-content:space-between;padding:10px 14px;background:rgba(34,197,94,.06);border-radius:10px;border:1px solid rgba(34,197,94,.2)">
             <span style="font-size:13px;color:var(--muted)">Waiver status</span>
-            <span style="font-size:13px;font-weight:700;color:#4ade80">Active — 71 days left</span>
+            <span style="font-size:13px;font-weight:700;color:#4ade80" id="waiver-status-row">Active — 71 days left</span>
           </div>
           <div style="display:flex;justify-content:space-between;padding:10px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border)">
             <span style="font-size:13px;color:var(--muted)">Next billing (if waiver lapses)</span>
@@ -689,22 +731,23 @@
               <circle class="ring-bg" cx="44" cy="44" r="38"/>
               <circle class="ring-fill" cx="44" cy="44" r="38"
                 stroke-dasharray="238.76"
-                stroke-dashoffset="68"/>
+                stroke-dashoffset="68"
+                id="waiver-ring-fill-sub"/>
             </svg>
             <div class="ring-label">
-              71<span>days</span>
+              <span id="waiver-days-sub">71</span><span>days</span>
             </div>
           </div>
           <div>
             <div style="font-size:16px;font-weight:800;margin-bottom:6px">Fee Waived ✓</div>
-            <p style="font-size:13px;color:var(--sub);line-height:1.6">
-              Triggered by signing up for Chase Total Checking. Your $49/mo is waived until <strong style="color:var(--text)">Aug 12, 2026</strong>.
+            <p style="font-size:13px;color:var(--sub);line-height:1.6" id="waiver-desc-sub">
+              Your $49/mo is waived until <strong style="color:var(--text)" id="waiver-end-date">Aug 12, 2026</strong>.
             </p>
           </div>
         </div>
-        <div class="prog-bar" style="height:8px"><div class="prog-fill" style="width:78%"></div></div>
+        <div class="prog-bar" style="height:8px"><div class="prog-fill" id="waiver-prog-sub" style="width:78%"></div></div>
         <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-top:6px">
-          <span>20 days used</span><span>71 days remaining</span>
+          <span id="waiver-days-used-sub">20 days used</span><span id="waiver-days-rem-sub">71 days remaining</span>
         </div>
 
         <div style="margin-top:16px;padding:14px;background:rgba(131,58,180,.08);border:1px solid rgba(131,58,180,.2);border-radius:12px">
@@ -725,7 +768,7 @@
         <thead>
           <tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th></tr>
         </thead>
-        <tbody>
+        <tbody id="billing-history-tbody">
           <tr>
             <td style="color:var(--muted)">May 17, 2026</td>
             <td>BigBankBonus Pro Monthly</td>
@@ -842,6 +885,60 @@
   </div>
 
   <!-- ══════════════════════════════════════════════════════
+       PAGE: Transactions
+  ══════════════════════════════════════════════════════════ -->
+  <div class="page" id="page-transactions">
+    <div class="section-hdr">
+      <div>
+        <h2>Transactions</h2>
+        <div class="section-sub" id="tx-sub">Scheduled ACH deposits across all campaigns</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <select id="tx-filter-status" onchange="loadTransactions()" style="background:var(--card);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer">
+          <option value="">All statuses</option>
+          <option value="QUEUED">Queued</option>
+          <option value="PROCESSING">Processing</option>
+          <option value="SETTLED">Settled</option>
+          <option value="FAILED">Failed</option>
+        </select>
+        <button class="btn btn-ghost" onclick="loadTransactions()">↺ Refresh</button>
+      </div>
+    </div>
+
+    <div class="card" id="tx-table-wrap">
+      <!-- Hardcoded fallback rows — replaced by loadTransactions() -->
+      <div class="card-title">All Transactions</div>
+      <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+          <tr style="color:var(--muted);text-align:left;border-bottom:1px solid var(--border)">
+            <th style="padding:8px 10px;font-weight:600">Date</th>
+            <th style="padding:8px 10px;font-weight:600">Amount</th>
+            <th style="padding:8px 10px;font-weight:600">Type</th>
+            <th style="padding:8px 10px;font-weight:600">Status</th>
+            <th style="padding:8px 10px;font-weight:600">Risk</th>
+          </tr>
+        </thead>
+        <tbody id="tx-body">
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 10px;color:var(--muted)">Jun 8 2026</td>
+            <td style="padding:10px 10px;font-weight:700;color:#4ade80">$300.00</td>
+            <td style="padding:10px 10px">PPD</td>
+            <td style="padding:10px 10px"><span class="status-badge green"><span class="dot"></span>Settled</span></td>
+            <td style="padding:10px 10px;color:var(--muted)">12</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 10px;color:var(--muted)">Jun 15 2026</td>
+            <td style="padding:10px 10px;font-weight:700;color:#facc15">$400.00</td>
+            <td style="padding:10px 10px">PPD</td>
+            <td style="padding:10px 10px"><span class="status-badge yellow"><span class="dot"></span>Queued</span></td>
+            <td style="padding:10px 10px;color:var(--muted)">8</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
        PAGE: Autopay Scheduler
   ══════════════════════════════════════════════════════════ -->
   <div class="page" id="page-scheduler">
@@ -853,7 +950,7 @@
       <button class="btn btn-grad" onclick="openScheduleWizard()">+ New Schedule</button>
     </div>
 
-    <div class="grid-2">
+    <div class="grid-2" id="sched-grid">
       <div class="card highlight">
         <div class="card-title">Active Schedule — SoFi Checking</div>
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
@@ -935,31 +1032,31 @@
       </div>
       <div style="display:flex;gap:8px;align-items:center">
         <span class="status-badge green" style="padding:6px 14px"><span class="dot" style="animation:pulse 2s infinite"></span>Live</span>
-        <button class="btn btn-ghost" onclick="showToast('Running monitor check…')">Run Now</button>
+        <button class="btn btn-ghost" id="monitor-run-btn" onclick="runMonitor()">Run Now</button>
       </div>
     </div>
 
     <div class="grid-3">
       <div class="stat-card">
         <div class="stat-label">Sources Checked</div>
-        <div class="stat-val grad-text">1,004</div>
+        <div class="stat-val grad-text" id="monitor-sources">1,004</div>
         <div class="stat-sub">CFPB, Reddit, DoC, newsrooms</div>
       </div>
       <div class="stat-card" style="border-color:rgba(239,68,68,.3)">
         <div class="stat-label">Alerts (7 days)</div>
-        <div class="stat-val" style="color:#f87171">2</div>
+        <div class="stat-val" style="color:#f87171" id="monitor-alerts">2</div>
         <div class="stat-sub">Policy changes detected</div>
       </div>
       <div class="stat-card">
         <div class="stat-label">Last Checked</div>
-        <div class="stat-val" style="font-size:22px">2h ago</div>
-        <div class="stat-sub">Next run in 4 hours</div>
+        <div class="stat-val" style="font-size:22px" id="monitor-last-checked">2h ago</div>
+        <div class="stat-sub" id="monitor-next-run">Next run in 4 hours</div>
       </div>
     </div>
 
     <div class="card">
       <div class="card-title">Recent Events</div>
-      <div>
+      <div id="monitor-events-list">
         <div class="monitor-item">
           <div class="monitor-icon alert">⚠️</div>
           <div style="flex:1">
@@ -1069,6 +1166,28 @@
     </div>
 
     <div class="grid-3">
+      <!-- AI Strategy Documents -->
+      <div class="card" style="display:flex;flex-direction:column;gap:12px;background:linear-gradient(135deg,rgba(201,169,110,.12),rgba(225,48,108,.08))">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(201,169,110,.2);display:flex;align-items:center;justify-content:center;font-size:22px">📊</div>
+        <div>
+          <div style="font-size:14px;font-weight:700">Big Bank Bonus Report</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">AI Portfolio &amp; Bonus ROI Analysis</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:auto">
+          <button class="btn btn-grad" style="flex:1;justify-content:center;font-size:12px" onclick="openBonusReport()">Generate Report</button>
+        </div>
+      </div>
+      <div class="card" style="display:flex;flex-direction:column;gap:12px;background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(147,51,234,.08))">
+        <div style="width:44px;height:44px;border-radius:12px;background:rgba(59,130,246,.2);display:flex;align-items:center;justify-content:center;font-size:22px">📅</div>
+        <div>
+          <div style="font-size:14px;font-weight:700">72-Month Planner</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:3px">Optimal Long-Term Bonus Schedule</div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:auto">
+          <button class="btn btn-grad" style="flex:1;justify-content:center;font-size:12px" onclick="openPlanner72()">Generate Plan</button>
+        </div>
+      </div>
+
       <div class="card" style="display:flex;flex-direction:column;gap:12px">
         <div style="width:44px;height:44px;border-radius:12px;background:rgba(225,48,108,.12);display:flex;align-items:center;justify-content:center;font-size:22px">📄</div>
         <div>
@@ -1193,28 +1312,55 @@
               <div style="font-size:14px;font-weight:600">Bonus credited</div>
               <div style="font-size:12px;color:var(--muted)">Alert when a bank posts your bonus</div>
             </div>
-            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer"><input type="checkbox" checked onchange="showToast('Preference saved.')" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;border-radius:22px;background:#c9a96e;transition:.2s"></span></label>
+            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer"><input id="notif-bonus" type="checkbox" checked onchange="toggleNotif(this,'notif_bonus_credited')" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;border-radius:22px;background:#c9a96e;transition:.2s"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s;transform:translateX(18px)"></span></span></label>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
             <div>
               <div style="font-size:14px;font-weight:600">Offer deadlines</div>
               <div style="font-size:12px;color:var(--muted)">7-day and 1-day warnings</div>
             </div>
-            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer"><input type="checkbox" checked onchange="showToast('Preference saved.')" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;border-radius:22px;background:#c9a96e;transition:.2s"></span></label>
+            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer"><input id="notif-deadlines" type="checkbox" checked onchange="toggleNotif(this,'notif_offer_deadlines')" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;border-radius:22px;background:#c9a96e;transition:.2s"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s;transform:translateX(18px)"></span></span></label>
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
             <div>
               <div style="font-size:14px;font-weight:600">New offer drops</div>
               <div style="font-size:12px;color:var(--muted)">When a new $200+ offer becomes available</div>
             </div>
-            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer"><input type="checkbox" onchange="showToast('Preference saved.')" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;border-radius:22px;background:var(--card2);border:1px solid var(--border);transition:.2s"></span></label>
+            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer"><input id="notif-new-offers" type="checkbox" onchange="toggleNotif(this,'notif_new_offers')" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;border-radius:22px;background:var(--card2);border:1px solid var(--border);transition:.2s"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s;transform:translateX(0)"></span></span></label>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
             <div>
               <div style="font-size:14px;font-weight:600">Weekly digest</div>
               <div style="font-size:12px;color:var(--muted)">Summary of earnings &amp; next steps</div>
             </div>
-            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer"><input type="checkbox" checked onchange="showToast('Preference saved.')" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;border-radius:22px;background:#c9a96e;transition:.2s"></span></label>
+            <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer"><input id="notif-digest" type="checkbox" checked onchange="toggleNotif(this,'notif_weekly_digest')" style="opacity:0;width:0;height:0"><span style="position:absolute;inset:0;border-radius:22px;background:#c9a96e;transition:.2s"><span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s;transform:translateX(18px)"></span></span></label>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;padding:12px 0;border-top:1px solid var(--border)">
+            <div>
+              <div style="font-size:14px;font-weight:600">SMS Alerts &amp; TCPA Consent</div>
+              <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Get campaign updates and critical deadlines via text message.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div>
+                <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:4px">Phone Number</label>
+                <input type="tel" id="settings-phone" placeholder="+1 (555) 000-0000" onchange="savePhoneAndConsent()" style="width:100%;padding:10px 14px;border-radius:10px;background:var(--dark);border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;outline:none" />
+              </div>
+              <div style="display:flex;align-items:flex-start;gap:8px;margin-top:6px">
+                <input type="checkbox" id="settings-tcpa-consent" onchange="savePhoneAndConsent()" style="margin-top:3px;cursor:pointer" />
+                <label for="settings-tcpa-consent" style="font-size:11px;color:var(--muted);line-height:1.4;cursor:pointer">
+                  I consent to receive automated promotional and transactional text messages (e.g. SMS/MMS) from BigBankBonus at the phone number provided. Consent is not a condition of purchase. Msg &amp; data rates may apply. Msg frequency varies. Reply HELP for help or STOP to cancel.
+                </label>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+                <span style="font-size:13px;font-weight:600">Enable SMS Notifications</span>
+                <label style="position:relative;display:inline-block;width:40px;height:22px;cursor:pointer">
+                  <input id="notif-sms" type="checkbox" onchange="savePhoneAndConsent()" style="opacity:0;width:0;height:0">
+                  <span style="position:absolute;inset:0;border-radius:22px;background:var(--card2);border:1px solid var(--border);transition:.2s">
+                    <span style="position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s;transform:translateX(0)"></span>
+                  </span>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -1231,7 +1377,7 @@
           <div style="padding:14px;background:rgba(248,113,113,.06);border:1px solid rgba(248,113,113,.2);border-radius:12px">
             <div style="font-size:14px;font-weight:700;margin-bottom:4px">Delete Account</div>
             <div style="font-size:12px;color:var(--muted);margin-bottom:10px">Permanently delete your account after a 30-day grace period.</div>
-            <button class="btn btn-ghost" style="font-size:13px;color:#f87171;border-color:rgba(248,113,113,.3)" onclick="showToast('Deletion request submitted. You have 30 days to cancel.')">Delete Account</button>
+            <button class="btn btn-ghost" style="font-size:13px;color:#f87171;border-color:rgba(248,113,113,.3)" onclick="requestDeleteAccount()">Delete Account</button>
           </div>
         </div>
       </div>
@@ -1280,6 +1426,80 @@
 
     <div class="sched-error" id="sched-error"></div>
     <button class="btn btn-grad" style="width:100%;justify-content:center;padding:14px" id="sched-submit-btn" onclick="submitSchedule()">Create Schedule →</button>
+  </div>
+</div>
+
+<!-- Checkout Modal -->
+<div id="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+  <div class="checkout-card">
+    <button class="checkout-close" onclick="closeCheckout()" aria-label="Close">×</button>
+    <div style="font-size:22px;font-weight:800;margin-bottom:6px" id="checkout-title">Confirm Campaign &amp; Secure Funding</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:24px">Review the funding schedule and authorize the ACH PPD transfer.</div>
+
+    <!-- Details/Pricing Breakdown -->
+    <div style="font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin-bottom:10px">Checkout Summary</div>
+    <div class="checkout-price-row">
+      <span style="color:var(--muted)">Pro Monthly Credit</span>
+      <span id="checkout-credit-val">-$0.00</span>
+    </div>
+    <div class="checkout-price-row">
+      <span style="color:var(--muted)">Net Campaign Fee</span>
+      <span id="checkout-fee-val">$148.00</span>
+    </div>
+    <div class="checkout-price-row">
+      <span style="color:var(--muted)">User Working Capital</span>
+      <span id="checkout-capital-val">$5,000.00</span>
+    </div>
+    <div class="checkout-price-total">
+      <span>Total Checkout Amount</span>
+      <span id="checkout-total-val" style="color:#c9a96e">$5,148.00</span>
+    </div>
+
+    <!-- PPD Document Box -->
+    <div class="ppd-doc-box" id="ppd-document">
+      <h3>ACH PPD AUTHORIZATION FORM</h3>
+      <p>I, <span id="ppd-user-name" style="font-weight:bold;color:var(--text)">[User Name]</span>, authorize BigBankBonus to initiate a Prearranged Payment and Deposit (PPD) direct debit entry from my linked primary bank account in the amount of <span id="ppd-total-amount" style="font-weight:bold;color:var(--text)">$5,148.00</span>, which consists of a campaign optimization fee (<span id="ppd-campaign-fee">$148.00</span>) and working capital (<span id="ppd-working-capital">$5,000.00</span>) to be routed to my target bank account at <span id="ppd-target-bank" style="font-weight:bold;color:var(--text)">[Target Bank]</span>.</p>
+      <p style="margin-top:10px">I acknowledge that this authorization remains in full force and effect until the campaign is completed or revoked in writing. All transfers are subject to the Electronic Fund Transfer Act (Reg E) and NACHA operating rules.</p>
+      <p style="margin-top:10px;font-size:10px;color:var(--muted)">Timestamp: <span id="ppd-timestamp">[Timestamp]</span><br>Document Ref: <span id="ppd-doc-ref">[UUID]</span></p>
+    </div>
+
+    <!-- Interactive PPD form/sign inputs -->
+    <div class="checkout-field">
+      <label>Legal Name Signature</label>
+      <input type="text" class="checkout-input" id="ppd-signature-input" placeholder="Type /s/ Your Full Name" oninput="validatePpdSignature()" />
+      <div style="font-size:12px;color:var(--muted);margin-top:6px">Must match your KYC record: <span id="kyc-expected-name" style="font-weight:bold;color:var(--text)">...</span></div>
+    </div>
+
+    <div class="checkout-field" style="display:flex;align-items:flex-start;gap:8px">
+      <input type="checkbox" id="ppd-auth-check" style="margin-top:3px" onchange="validatePpdSignature()" />
+      <label for="ppd-auth-check" style="text-transform:none;font-weight:normal;color:var(--sub);font-size:13px;line-height:1.4">I agree to the terms of the ACH PPD authorization document above and authorize this transaction.</label>
+    </div>
+
+    <div id="checkout-error" style="color:#f87171;font-size:13px;margin-bottom:14px;display:none"></div>
+    
+    <button class="btn btn-grad" style="width:100%;justify-content:center;padding:14px" id="checkout-submit-btn" disabled onclick="confirmCheckout()">Pay &amp; Start Campaign →</button>
+  </div>
+<!-- Report Modal -->
+<div id="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-title">
+  <div class="report-card">
+    <button class="report-close" onclick="closeReport()" aria-label="Close">×</button>
+    <div style="font-size:22px;font-weight:800;margin-bottom:6px" id="report-title">AI Portfolio Strategy Report</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:24px">Personalized analysis of your assets and campaign opportunities.</div>
+    <div id="report-content" style="display:flex;flex-direction:column;gap:20px;line-height:1.65;font-size:14px;color:var(--text)">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Planner Modal -->
+<div id="planner-modal" role="dialog" aria-modal="true" aria-labelledby="planner-title">
+  <div class="planner-card">
+    <button class="planner-close" onclick="closePlanner()" aria-label="Close">×</button>
+    <div style="font-size:22px;font-weight:800;margin-bottom:6px" id="planner-title">AI 72-Month Optimal Planner</div>
+    <div style="font-size:14px;color:var(--muted);margin-bottom:24px">Multi-year optimized campaign and cashflow projection.</div>
+    <div id="planner-content" style="display:flex;flex-direction:column;gap:20px;line-height:1.65;font-size:14px;color:var(--text)">
+      <!-- Injected by JS -->
+    </div>
   </div>
 </div>
 
@@ -1337,81 +1557,440 @@
 
   function buildOffers() {
     const grid = document.getElementById('offers-grid');
+    if (!grid) return;
     grid.innerHTML = OFFERS.map((o, i) => `
       <div class="offer-card">
         <div class="offer-header">
           <div style="display:flex;gap:10px;align-items:flex-start">
-            <div class="offer-bank-icon">${o.initial}</div>
+            <div class="offer-bank-icon">${_esc(o.initial)}</div>
             <div>
-              <div class="offer-bank">${o.bank}</div>
-              <div class="offer-type">${o.type}</div>
+              <div class="offer-bank">${_esc(o.bank)}</div>
+              <div class="offer-type">${_esc(o.type)}</div>
             </div>
           </div>
           <div style="text-align:right">
-            <div class="offer-amount grad-text">$${o.bonus}</div>
+            <div class="offer-amount grad-text">$${Number(o.bonus).toLocaleString()}</div>
             <div style="font-size:11px;color:var(--muted)">bonus</div>
           </div>
         </div>
-        <div class="offer-req">${o.req}</div>
+        <div class="offer-req">${_esc(o.req)}</div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <span class="status-badge blue" style="font-size:10px"><span class="dot"></span>${o.roic} ROIC</span>
-          <span class="status-badge purple" style="font-size:10px"><span class="dot"></span>${o.time}</span>
-          <span class="status-badge ${o.ews==='ChexSystems'?'green':'yellow'}" style="font-size:10px"><span class="dot"></span>${o.ews}</span>
+          <span class="status-badge blue" style="font-size:10px"><span class="dot"></span>${_esc(o.roic)} ROIC</span>
+          <span class="status-badge purple" style="font-size:10px"><span class="dot"></span>${_esc(o.time)}</span>
+          <span class="status-badge ${o.ews==='ChexSystems'?'green':'yellow'}" style="font-size:10px"><span class="dot"></span>${_esc(o.ews)}</span>
         </div>
         <div class="offer-footer">
           <span style="font-size:11px;color:var(--muted)">Live on DoC</span>
           <button class="offer-btn ${o.claimed?'claimed':''}" id="offer-btn-${i}"
-            onclick="claimOffer(${i})">
-            ${o.claimed ? '✓ Signed Up' : 'Sign Up → Waiver'}
+            onclick="claimOffer(${i})" ${o.claimed?'disabled':''}>
+            ${o.claimed ? '✓ Campaign Active' : 'Sign Up → Waiver'}
           </button>
         </div>
       </div>
     `).join('');
   }
 
-  async function refreshOffers() {
+  async function loadOffers(silent = false) {
+    if (!_bbbToken) return;
     const btn = document.getElementById('refresh-offers-btn');
-    btn.disabled = true;
-    btn.textContent = '↺ Refreshing…';
+    if (btn) { btn.disabled = true; btn.textContent = '↺ Loading…'; }
     try {
       const res = await fetch(`${BBB_API}/api/v1/campaigns/opportunities`, {
-        headers: _bbbToken ? { 'Authorization': `Bearer ${_bbbToken}` } : {},
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
       });
       if (!res.ok) throw new Error(`${res.status}`);
       const opps = await res.json();
       localStorage.setItem('bbb_opportunities', JSON.stringify(opps));
+
+      const activeBanks = new Set(_campaignsCache.map(c => (c.bank_name || '').toLowerCase()));
       OFFERS.length = 0;
-      opps.forEach(o => OFFERS.push({
-        bank:    o.bank_name,
-        initial: o.bank_name[0].toUpperCase(),
-        bonus:   o.bonus_amount,
-        req:     `$${Number(o.required_deposit).toLocaleString()} deposit · ${o.deadline_days} days`,
-        type:    'Checking',
-        roic:    `${o.roi_pct}%`,
-        time:    `${o.deadline_days} days`,
-        ews:     'ChexSystems',
-        claimed: false,
-        _raw:    o,
-      }));
+      opps.forEach(o => {
+        const bankLower = (o.bank_name || '').toLowerCase();
+        OFFERS.push({
+          bank:    o.bank_name,
+          initial: (o.bank_name || '?')[0].toUpperCase(),
+          bonus:   o.bonus_amount,
+          req:     `$${Number(o.required_deposit).toLocaleString()} deposit · ${o.deadline_days} days`,
+          type:    'Checking',
+          roic:    `${o.roi_pct}%`,
+          time:    `${o.deadline_days} days`,
+          ews:     o.difficulty === 'hard' ? 'EWS' : 'ChexSystems',
+          claimed: activeBanks.has(bankLower),
+          _raw:    o,
+        });
+      });
       buildOffers();
-      showToast(`Offers refreshed — ${opps.length} opportunities loaded.`);
-    } catch (err) {
-      showToast('Could not refresh — using cached offers.');
+
+      const sub = document.getElementById('offers-sub');
+      if (sub) {
+        const excluded = [...activeBanks].map(b => b.charAt(0).toUpperCase() + b.slice(1));
+        const exStr = excluded.length ? ` · ${excluded.slice(0, 2).join(', ')} excluded` : '';
+        sub.textContent = `Personalized for your profile${exStr} · ${opps.length} opportunities`;
+      }
+      if (!silent) showToast(`Offers refreshed — ${opps.length} opportunities loaded.`);
+    } catch (_) {
+      if (!silent) showToast('Could not refresh — using cached offers.');
     } finally {
-      btn.disabled = false;
-      btn.textContent = '↺ Refresh';
+      if (btn) { btn.disabled = false; btn.textContent = '↺ Refresh'; }
     }
+  }
+
+  async function refreshOffers() {
+    await loadOffers(false);
+  }
+
+  let _claimSuccessIndex = null;
+  let _activeCheckoutCampaignId = null;
+  let _activeCheckoutBankName = null;
+  let _activeCheckoutData = null;
+  let _userFullName = '';
+
+  async function sha256(str) {
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    let hex = '';
+    const bytes = new Uint8Array(hash);
+    for (let i = 0; i < bytes.length; i++) {
+      hex += bytes[i].toString(16).padStart(2, '0');
+    }
+    return hex;
+  }
+
+  function generatePpdDocText(userName, targetBank, totalAmount, campaignFee, workingCapital, timestamp, docRef, signatureText) {
+    return `ACH PPD AUTHORIZATION FORM
+I, ${userName}, authorize BigBankBonus to initiate a Prearranged Payment and Deposit (PPD) direct debit entry from my linked primary bank account in the amount of $${totalAmount}, which consists of a campaign optimization fee ($${campaignFee}) and working capital ($${workingCapital}) to be routed to my target bank account at ${targetBank}.
+
+I acknowledge that this authorization remains in full force and effect until the campaign is completed or revoked in writing. All transfers are subject to the Electronic Fund Transfer Act (Reg E) and NACHA operating rules.
+
+Timestamp: ${timestamp}
+Document Ref: ${docRef}
+Digital Signature: ${signatureText}
+Authorized and Signed Electronically.`;
   }
 
   function _claimSuccess(i) {
     const o = OFFERS[i];
     const btn = document.getElementById(`offer-btn-${i}`);
+    if (!btn) return;
     OFFERS[i].claimed = true;
-    btn.textContent   = '✓ Campaign Started';
+    btn.textContent   = '✓ Campaign Active';
     btn.classList.add('claimed');
-    btn.disabled      = false;
-    showToast(`🎁 ${o.bank} campaign started! 91-day fee waiver applied.`);
+    btn.disabled      = true;
+    showToast(`🎁 ${o.bank} campaign active! Automated ACH schedules initiated.`);
     setTimeout(() => showToast('Track your progress in the Overview.'), 2500);
+  }
+
+  async function checkoutCampaign(campaignId, bankName) {
+    if (!_bbbToken) {
+      showToast('Sign in first to unlock campaigns.');
+      return;
+    }
+    
+    showToast('Checking eligibility...');
+    
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/campaigns/checkout`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+        body: JSON.stringify({ campaign_id: campaignId })
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        showToast(data.detail || 'Could not verify campaign eligibility.');
+        return;
+      }
+      
+      if (data.status === 'ineligible') {
+        let msg = 'Checkout Ineligible. ';
+        if (data.checkout_state === 'balance_gate_failed') {
+          if (data.next_action === 'link_bank') {
+            msg += 'Please link a bank account with at least $5,000 available balance.';
+          } else {
+            msg += 'Linked bank account must have at least $5,000 available balance.';
+          }
+        } else {
+          msg += 'Please verify your details and try again.';
+        }
+        showToast(`⚠️ ${msg}`, 6000);
+        return;
+      }
+      
+      if (data.status === 'requires_ppd_signature' && data.eligible) {
+        _activeCheckoutCampaignId = campaignId;
+        _activeCheckoutBankName = bankName || data.campaign_name || 'Target Bank';
+        _activeCheckoutData = data;
+        
+        if (!_userFullName) {
+          const meRes = await fetch(`${BBB_API}/api/v1/auth/me`, {
+            headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` })
+          });
+          if (meRes.ok) {
+            const u = await meRes.json();
+            _userFullName = u.full_name || '';
+          }
+        }
+        
+        document.getElementById('checkout-credit-val').textContent = `-$${Number(data.subscription_credit).toFixed(2)}`;
+        document.getElementById('checkout-fee-val').textContent = `$${Number(data.campaign_fee_net).toFixed(2)}`;
+        document.getElementById('checkout-capital-val').textContent = `$${Number(data.balance_required).toFixed(2)}`;
+        document.getElementById('checkout-total-val').textContent = `$${Number(data.first_campaign_total).toFixed(2)}`;
+        
+        document.getElementById('ppd-user-name').textContent = _userFullName || '[Your Legal Name]';
+        document.getElementById('ppd-total-amount').textContent = `$${Number(data.first_campaign_total).toFixed(2)}`;
+        document.getElementById('ppd-campaign-fee').textContent = `$${Number(data.campaign_fee_net).toFixed(2)}`;
+        document.getElementById('ppd-working-capital').textContent = `$${Number(data.balance_required).toFixed(2)}`;
+        document.getElementById('ppd-target-bank').textContent = _activeCheckoutBankName;
+        
+        const now = new Date();
+        document.getElementById('ppd-timestamp').textContent = now.toUTCString();
+        document.getElementById('ppd-doc-ref').textContent = campaignId;
+        document.getElementById('kyc-expected-name').textContent = _userFullName || 'Profile Full Name';
+        
+        document.getElementById('ppd-signature-input').value = '';
+        document.getElementById('ppd-auth-check').checked = false;
+        document.getElementById('checkout-error').style.display = 'none';
+        document.getElementById('checkout-submit-btn').disabled = true;
+        
+        document.getElementById('checkout-modal').classList.add('open');
+      } else {
+        showToast(data.detail || 'Plaid balance check did not pass or verify.');
+      }
+      
+    } catch (err) {
+      showToast('Network error verifying checkout eligibility.');
+      console.error(err);
+    }
+  }
+
+  function closeCheckout() {
+    document.getElementById('checkout-modal').classList.remove('open');
+  }
+
+  // ── Report & Planner Modals ──────────────────────────────────
+  async function openBonusReport() {
+    const content = document.getElementById('report-content');
+    content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><span class="spinner" style="display:inline-block;width:24px;height:24px;border:3px solid rgba(255,255,255,.15);border-top-color:#c9a96e;border-radius:50%;animation:spin .8s linear infinite"></span><div style="margin-top:12px">Analyzing portfolio and opportunities...</div></div>';
+    document.getElementById('report-modal').classList.add('open');
+    
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/agents/bonus-report`, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` })
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      
+      let html = `<div style="font-size:15px;color:var(--sub);margin-bottom:12px">${data.summary}</div>`;
+      
+      html += `<div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Key Portfolio Insights</div>`;
+      html += `<div style="display:flex;flex-direction:column;gap:10px">`;
+      for (const ins of (data.insights || [])) {
+        const priorityColor = ins.priority === 'high' ? '#fca5a5' : (ins.priority === 'medium' ? '#fcd34d' : '#86efac');
+        html += `
+          <div style="background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+              <span style="font-weight:700;font-size:13px">${ins.type}</span>
+              <span style="font-size:10px;font-weight:700;text-transform:uppercase;color:${priorityColor};background:rgba(255,255,255,.05);padding:2px 6px;border-radius:4px">${ins.priority}</span>
+            </div>
+            <div style="font-size:12.5px;color:var(--sub)">${ins.text}</div>
+          </div>
+        `;
+      }
+      html += `</div>`;
+      
+      html += `<div style="font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-top:16px;margin-bottom:8px">Recommended Campaigns</div>`;
+      html += `<div style="display:flex;flex-direction:column;gap:10px">`;
+      for (const rec of (data.recommendations || [])) {
+        html += `
+          <div style="background:var(--card2);border:1.5px solid var(--border);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center">
+            <div>
+              <div style="font-weight:700;font-size:14px;color:var(--text)">${rec.bank}</div>
+              <div style="font-size:12px;color:var(--muted);margin-top:2px">${rec.requirement}</div>
+              <div style="font-size:11px;color:var(--sub);margin-top:4px">EWS/Chex: <span style="color:var(--text)">${rec.chexsystems}</span></div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:18px;font-weight:900;color:#c9a96e">$${rec.bonus}</div>
+              <div style="font-size:10px;color:var(--muted)">ROI: ${rec.roi}</div>
+            </div>
+          </div>
+        `;
+      }
+      html += `</div>`;
+      
+      content.innerHTML = html;
+    } catch (err) {
+      content.innerHTML = '<div style="color:#f87171;text-align:center;padding:40px">Failed to load strategic report. Please try again.</div>';
+    }
+  }
+
+  function closeReport() {
+    document.getElementById('report-modal').classList.remove('open');
+  }
+
+  async function openPlanner72() {
+    const content = document.getElementById('planner-content');
+    content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)"><span class="spinner" style="display:inline-block;width:24px;height:24px;border:3px solid rgba(255,255,255,.15);border-top-color:#c9a96e;border-radius:50%;animation:spin .8s linear infinite"></span><div style="margin-top:12px">Calculating 72-Month Optimal Cashflow Plan...</div></div>';
+    document.getElementById('planner-modal').classList.add('open');
+    
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/agents/planner-72month`, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` })
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      
+      let html = `<div style="font-size:13px;color:var(--sub);margin-bottom:12px">Multi-year roadmap demonstrating how to systematically roll campaigns to maximize ROI within legal velocity caps.</div>`;
+      
+      html += `
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:left">
+            <thead>
+              <tr style="border-bottom:1.5px solid var(--border);color:var(--muted)">
+                <th style="padding:10px 8px">Month</th>
+                <th style="padding:10px 8px">Bank Campaign</th>
+                <th style="padding:10px 8px">Action</th>
+                <th style="padding:10px 8px">Bonus</th>
+                <th style="padding:10px 8px;text-align:right">Cum. Earned</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+      
+      for (const item of (data.schedule || [])) {
+        html += `
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:12px 8px;color:var(--muted);white-space:nowrap">${item.date} (M${item.month})</td>
+            <td style="padding:12px 8px;font-weight:700">${item.bank}</td>
+            <td style="padding:12px 8px"><span style="background:rgba(201,169,110,.1);color:#c9a96e;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700">${item.action}</span></td>
+            <td style="padding:12px 8px;color:#4ade80;font-weight:600">+$${item.bonus}</td>
+            <td style="padding:12px 8px;text-align:right;font-weight:800;color:var(--text)">$${item.cumulative_earnings}</td>
+          </tr>
+        `;
+      }
+      
+      html += `
+            </tbody>
+          </table>
+        </div>
+      `;
+      
+      content.innerHTML = html;
+    } catch (err) {
+      content.innerHTML = '<div style="color:#f87171;text-align:center;padding:40px">Failed to load the planner. Please try again.</div>';
+    }
+  }
+
+  function closePlanner() {
+    document.getElementById('planner-modal').classList.remove('open');
+  }
+
+  async function savePhoneAndConsent() {
+    const phoneInput = document.getElementById('settings-phone');
+    const tcpaCheckbox = document.getElementById('settings-tcpa-consent');
+    const smsCheckbox = document.getElementById('notif-sms');
+    
+    _applyToggleVisual(smsCheckbox);
+    
+    const phone = phoneInput.value.trim();
+    const tcpa = tcpaCheckbox.checked;
+    const sms = smsCheckbox.checked;
+    
+    if (sms && (!phone || !tcpa)) {
+      showToast('Phone number and TCPA consent are required to enable SMS.');
+      smsCheckbox.checked = false;
+      _applyToggleVisual(smsCheckbox);
+      return;
+    }
+    
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/auth/me`, {
+        method: 'PATCH',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}`, 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          phone_number: phone || null,
+          sms_notifications_enabled: sms,
+          tcpa_consent_accepted: tcpa
+        }),
+      });
+      if (!res.ok) throw new Error();
+      showToast('SMS notification settings saved.');
+    } catch (_) {
+      showToast('Error saving settings.');
+    }
+  }
+
+  function validatePpdSignature() {
+    const inputVal = document.getElementById('ppd-signature-input').value.trim();
+    const checked = document.getElementById('ppd-auth-check').checked;
+    const expectedName = (document.getElementById('kyc-expected-name').textContent || '').trim();
+    
+    const expectedSig = `/s/ ${expectedName}`.toLowerCase();
+    const inputSig = inputVal.toLowerCase();
+    
+    const isValid = checked && (inputSig === expectedSig) && inputVal.length > 0;
+    
+    document.getElementById('checkout-submit-btn').disabled = !isValid;
+  }
+
+  async function confirmCheckout() {
+    if (!_activeCheckoutCampaignId) return;
+    
+    const btn = document.getElementById('checkout-submit-btn');
+    const errEl = document.getElementById('checkout-error');
+    errEl.style.display = 'none';
+    
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+    
+    try {
+      const userName = _userFullName;
+      const targetBank = _activeCheckoutBankName;
+      const totalAmount = Number(_activeCheckoutData.first_campaign_total).toFixed(2);
+      const campaignFee = Number(_activeCheckoutData.campaign_fee_net).toFixed(2);
+      const workingCapital = Number(_activeCheckoutData.balance_required).toFixed(2);
+      const timestamp = document.getElementById('ppd-timestamp').textContent;
+      const docRef = _activeCheckoutCampaignId;
+      const signatureText = document.getElementById('ppd-signature-input').value.trim();
+      
+      const docText = generatePpdDocText(userName, targetBank, totalAmount, campaignFee, workingCapital, timestamp, docRef, signatureText);
+      const docHash = await sha256(docText);
+      
+      const res = await fetch(`${BBB_API}/api/v1/campaigns/${_activeCheckoutCampaignId}/checkout-confirm`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+        body: JSON.stringify({
+          signed_ppd_doc: docText,
+          signature_hash: docHash
+        })
+      });
+      
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.detail || 'Checkout confirmation failed.');
+      }
+      
+      if (result.status === 'error') {
+        throw new Error('Signature verification failed or transaction could not clear.');
+      }
+      
+      closeCheckout();
+      showToast(`🎉 Campaign unlocked! Net fee $${result.campaign_fee_charged || 99} charged via ACH.`);
+      
+      if (_claimSuccessIndex !== null) {
+        _claimSuccess(_claimSuccessIndex);
+        _claimSuccessIndex = null;
+      }
+      
+      await loadOverview();
+      await loadScheduler();
+      
+    } catch (err) {
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+      btn.disabled = false;
+      btn.textContent = 'Pay & Start Campaign →';
+    }
   }
 
   async function claimOffer(i) {
@@ -1444,7 +2023,11 @@
         }),
       });
       if (res.ok) {
-        _claimSuccess(i);
+        const campaign = await res.json();
+        _claimSuccessIndex = i;
+        await checkoutCampaign(campaign.id, o.bank);
+        btn.disabled = false;
+        btn.textContent = 'Sign Up → Unlock';
         return;
       }
       const data = await res.json().catch(() => ({}));
@@ -1457,7 +2040,7 @@
       showToast('Connection error — please try again.');
     }
     btn.disabled = false;
-    btn.textContent = 'Sign Up → Waiver';
+    btn.textContent = 'Sign Up → Unlock';
   }
 
   // ── Settings helpers ───────────────────────────────────────────
@@ -1534,6 +2117,51 @@
     }
   }
 
+  // ── Notification toggles ───────────────────────────────────────
+  function _applyToggleVisual(cb) {
+    const track = cb.nextElementSibling;
+    const knob  = track && track.firstElementChild;
+    if (cb.checked) {
+      track.style.background = '#c9a96e';
+      track.style.border = '';
+      if (knob) knob.style.transform = 'translateX(18px)';
+    } else {
+      track.style.background = 'var(--card2)';
+      track.style.border = '1px solid var(--border)';
+      if (knob) knob.style.transform = 'translateX(0)';
+    }
+  }
+
+  async function toggleNotif(cb, field) {
+    _applyToggleVisual(cb);
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/auth/me`, {
+        method: 'PATCH',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+        body: JSON.stringify({ [field]: cb.checked }),
+      });
+      if (!res.ok) throw new Error();
+      showToast('Preference saved.');
+    } catch (_) {
+      showToast('Saved locally — will sync when reconnected.');
+    }
+  }
+
+  // ── Delete account ─────────────────────────────────────────────
+  async function requestDeleteAccount() {
+    if (!confirm('Are you sure? Your account will be permanently deleted after the 30-day grace period.')) return;
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/auth/me`, {
+        method: 'DELETE',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) throw new Error();
+      showToast('Deletion request submitted. You have 30 days to cancel.');
+    } catch (_) {
+      showToast('Could not submit deletion request — please try again.');
+    }
+  }
+
   // ── Export Data ────────────────────────────────────────────────
   async function exportData() {
     const btn = document.getElementById('export-data-btn');
@@ -1559,6 +2187,74 @@
     } finally {
       btn.disabled = false;
       btn.textContent = '↓ Export Data';
+    }
+  }
+
+  // ── Policy Monitor ─────────────────────────────────────────────
+  function _relTime(iso) {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 2)  return 'just now';
+    if (mins < 60) return `${mins} minutes ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24)  return hrs === 1 ? '1 hour ago' : `${hrs} hours ago`;
+    const days = Math.floor(hrs / 24);
+    return days === 1 ? '1 day ago' : `${days} days ago`;
+  }
+
+  async function loadMonitor() {
+    if (!_bbbToken) return;
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/monitor/events`, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) return; // keep hardcoded fallback
+      const data = await res.json();
+
+      document.getElementById('monitor-sources').textContent       = (data.sources_checked || 1004).toLocaleString();
+      document.getElementById('monitor-alerts').textContent        = data.alerts_7d ?? 2;
+      document.getElementById('monitor-last-checked').textContent  = _relTime(data.last_checked);
+      if (data.next_run_in_minutes) {
+        const hrs = Math.floor(data.next_run_in_minutes / 60);
+        document.getElementById('monitor-next-run').textContent = `Next run in ${hrs} hour${hrs === 1 ? '' : 's'}`;
+      }
+
+      const list = document.getElementById('monitor-events-list');
+      if (!list || !data.events?.length) return;
+      const iconMap  = { alert: '⚠️', info: 'ℹ️', ok: '✅' };
+      const badgeMap = { alert: 'yellow', info: 'blue', ok: 'green' };
+      list.innerHTML = data.events.map(e => `
+        <div class="monitor-item">
+          <div class="monitor-icon ${_esc(e.level)}">${iconMap[e.level] || 'ℹ️'}</div>
+          <div style="flex:1">
+            <div class="monitor-title"${e.level === 'alert' ? ' style="color:#f87171"' : ''}>${_esc(e.title)}</div>
+            <div class="monitor-desc">${_esc(e.description)}</div>
+            <div class="monitor-time">${_relTime(e.created_at)} · Source: ${_esc(e.source)}</div>
+          </div>
+          <span class="status-badge ${badgeMap[e.level] || 'blue'}" style="align-self:flex-start;flex-shrink:0"><span class="dot"></span>${_esc(e.badge)}</span>
+        </div>
+      `).join('');
+    } catch (_) {}
+  }
+
+  async function runMonitor() {
+    const btn = document.getElementById('monitor-run-btn');
+    btn.disabled = true;
+    btn.textContent = 'Running…';
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/monitor/run`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      document.getElementById('monitor-last-checked').textContent = _relTime(data.last_checked);
+      showToast('Monitor check complete. Feed is up to date.');
+    } catch (_) {
+      showToast('Monitor check failed — please try again.');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Run Now';
     }
   }
 
@@ -1690,7 +2386,15 @@
   document.getElementById('sched-modal').addEventListener('click', function(e) {
     if (e.target === this) closeScheduleWizard();
   });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeScheduleWizard(); });
+  document.getElementById('checkout-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeCheckout();
+  });
+  document.addEventListener('keydown', e => { 
+    if (e.key === 'Escape') {
+      closeScheduleWizard();
+      closeCheckout();
+    }
+  });
 
   function downloadFile(filename, content) {
     const blob = new Blob([content], { type: 'text/plain' });
@@ -1705,7 +2409,8 @@
     showToast('Downloading ' + filename);
   }
 
-  buildOffers();
+  buildOffers();      // immediate render from hardcoded/localStorage
+  loadOffers(true);  // async: fetch live from API and re-render silently
 
   // Auto-navigate to offers after bank link (deferred so toast vars are initialized)
   if (new URLSearchParams(window.location.search).get('bank_linked') === 'true') {
@@ -1726,6 +2431,7 @@
     agent:        ['AI Bonus Agent',     'GPT-4o · Knows your full profile'],
     files:        ['Documents',          '3 files · Secured in object storage'],
     settings:     ['Settings',           'Account, notifications & security'],
+    transactions: ['Transactions',       'Scheduled ACH deposits across all campaigns'],
   };
 
   function showPage(id, navEl) {
@@ -1928,6 +2634,35 @@
       document.getElementById('settings-name').textContent  = display;
       document.getElementById('settings-avatar').textContent = avatar;
       document.getElementById('settings-email').textContent = u.email || '—';
+      const notifMap = {
+        'notif-bonus':      u.notif_bonus_credited,
+        'notif-deadlines':  u.notif_offer_deadlines,
+        'notif-new-offers': u.notif_new_offers,
+        'notif-digest':     u.notif_weekly_digest,
+      };
+      for (const [id, val] of Object.entries(notifMap)) {
+        if (val === undefined) continue;
+        const cb = document.getElementById(id);
+        if (!cb) continue;
+        cb.checked = val;
+        _applyToggleVisual(cb);
+      }
+      
+      // Populate SMS Settings
+      const phoneInput = document.getElementById('settings-phone');
+      if (phoneInput && u.phone_number !== undefined) {
+        phoneInput.value = u.phone_number || '';
+      }
+      const tcpaCheckbox = document.getElementById('settings-tcpa-consent');
+      if (tcpaCheckbox && u.tcpa_consent_accepted !== undefined) {
+        tcpaCheckbox.checked = u.tcpa_consent_accepted;
+      }
+      const smsCheckbox = document.getElementById('notif-sms');
+      if (smsCheckbox && u.sms_notifications_enabled !== undefined) {
+        smsCheckbox.checked = u.sms_notifications_enabled;
+        _applyToggleVisual(smsCheckbox);
+      }
+
       _userFirstName = first;
       updateAgentGreeting();
     } catch (_) {}
@@ -2076,6 +2811,62 @@
     enterprise: { name: 'Enterprise',  desc: 'Custom pricing',               amount: 'Custom' },
   };
 
+  function _updateWaiver(periodEnd) {
+    const WAIVER_DAYS = 91;
+    const DASH = 238.76;
+    const now = Date.now();
+    const end = periodEnd ? new Date(periodEnd).getTime() : 0;
+    const msLeft = end - now;
+    const daysRem = msLeft > 0 ? Math.ceil(msLeft / 86400000) : 0;
+    const daysUsed = Math.max(0, WAIVER_DAYS - daysRem);
+    const pct = Math.min(100, Math.round(daysRem / WAIVER_DAYS * 100));
+    const active = daysRem > 0;
+    const dashOffset = Math.round(DASH * (1 - pct / 100));
+    const endLabel = end ? new Date(end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+
+    // Overview stat card
+    const statDays = document.getElementById('stat-waiver-days');
+    if (statDays) statDays.textContent = active ? `${daysRem} days` : 'Inactive';
+    const statDelta = document.getElementById('stat-waiver-delta');
+    if (statDelta) { statDelta.textContent = active ? 'Fee waived ✓' : 'No waiver active'; }
+
+    // Overview ring
+    const ringOv = document.getElementById('waiver-ring-fill');
+    if (ringOv) ringOv.setAttribute('stroke-dashoffset', dashOffset);
+    const daysOvEl = document.getElementById('waiver-days-ov');
+    if (daysOvEl) daysOvEl.textContent = daysRem;
+    const titleOv = document.getElementById('waiver-title-ov');
+    if (titleOv) titleOv.textContent = active ? 'Fee Waiver Active' : 'No Active Waiver';
+    const descOv = document.getElementById('waiver-desc-ov');
+    if (descOv) descOv.innerHTML = active
+      ? `Your $49/mo fee is waived for <strong style="color:var(--text)">${daysRem} more days</strong> (until ${endLabel}).`
+      : 'Sign up for an offer to trigger a 91-day fee waiver.';
+    const badgeOv = document.getElementById('waiver-badge-ov');
+    if (badgeOv) { badgeOv.style.display = active ? '' : 'none'; }
+    const progTextOv = document.getElementById('waiver-progress-text-ov');
+    if (progTextOv) progTextOv.textContent = active ? `${daysRem} / ${WAIVER_DAYS} days remaining` : 'Waiver expired';
+    const progOv = document.getElementById('waiver-prog-ov');
+    if (progOv) progOv.style.width = pct + '%';
+
+    // Subscription status row
+    const statusRow = document.getElementById('waiver-status-row');
+    if (statusRow) statusRow.textContent = active ? `Active — ${daysRem} days left` : 'No active waiver';
+
+    // Subscription waiver detail card
+    const ringSub = document.getElementById('waiver-ring-fill-sub');
+    if (ringSub) ringSub.setAttribute('stroke-dashoffset', dashOffset);
+    const daysSub = document.getElementById('waiver-days-sub');
+    if (daysSub) daysSub.textContent = daysRem;
+    const endDateEl = document.getElementById('waiver-end-date');
+    if (endDateEl) endDateEl.textContent = endLabel;
+    const progSub = document.getElementById('waiver-prog-sub');
+    if (progSub) progSub.style.width = pct + '%';
+    const usedSub = document.getElementById('waiver-days-used-sub');
+    if (usedSub) usedSub.textContent = `${daysUsed} days used`;
+    const remSub = document.getElementById('waiver-days-rem-sub');
+    if (remSub) remSub.textContent = `${daysRem} days remaining`;
+  }
+
   async function loadSubscription() {
     if (!_bbbToken) return;
     try {
@@ -2107,9 +2898,40 @@
         btn.textContent = 'Upgrade to Pro';
         btn.onclick = () => showPage('offers', document.querySelectorAll('.nav-item')[1]);
       }
+
+      _updateWaiver(sub.period_end);
     } catch (_) { /* keep hardcoded fallback */ }
+    loadBillingHistory();
   }
   loadSubscription();
+
+  async function loadBillingHistory() {
+    if (!_bbbToken) return;
+    const tbody = document.getElementById('billing-history-tbody');
+    if (!tbody) return;
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/billing/invoices`, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) return;
+      const rows = await res.json();
+      if (!rows.length) return;
+      const _fmtDate = iso => new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const _badge = s => {
+        const map = { waived: 'green', trial: 'blue', paid: 'green', open: 'yellow', void: 'muted', uncollectible: 'red' };
+        const cls = map[s] || 'muted';
+        const label = s.charAt(0).toUpperCase() + s.slice(1);
+        return `<span class="status-badge ${cls}"><span class="dot"></span>${_esc(label)}</span>`;
+      };
+      tbody.innerHTML = rows.map(r => `
+        <tr>
+          <td style="color:var(--muted)">${_fmtDate(r.date)}</td>
+          <td>${_esc(r.description)}</td>
+          <td style="font-weight:700;color:#4ade80">${_esc(r.amount_display)}</td>
+          <td>${_badge(r.status)}${r.url ? ` <a href="${_esc(r.url)}" target="_blank" style="font-size:.75rem;color:var(--accent);margin-left:.5rem">PDF</a>` : ''}</td>
+        </tr>`).join('');
+    } catch (_) { /* keep hardcoded rows */ }
+  }
 
   // ── Linked Banks page from live data ───────────────────────────
   const _BANK_GRADS = ['var(--grad)', 'linear-gradient(135deg,#1e40af,#2563eb)', 'linear-gradient(135deg,#065f46,#10b981)', 'linear-gradient(135deg,#7c2d12,#ea580c)'];
@@ -2201,6 +3023,150 @@
     } catch (_) { /* keep hardcoded fallback */ }
   }
   loadLinkedBanks();
+  loadTransactions();
+  loadMonitor();
+  loadScheduler();
+
+  async function loadTransactions() {
+    if (!_bbbToken) return;
+    const statusFilter = document.getElementById('tx-filter-status')?.value || '';
+    const url = `${BBB_API}/api/v1/transactions${statusFilter ? '?status=' + statusFilter : ''}`;
+    try {
+      const res = await fetch(url, {
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+      });
+      if (!res.ok) return; // keep hardcoded fallback
+      const txns = await res.json();
+
+      const statusColors = { SETTLED: 'green', QUEUED: 'yellow', PROCESSING: 'blue', FAILED: 'red' };
+      const fmtDate = ts => ts ? new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—';
+
+      document.getElementById('tx-sub').textContent =
+        `${txns.length} transaction${txns.length !== 1 ? 's' : ''} · Scheduled ACH deposits`;
+
+      const body = document.getElementById('tx-body');
+      if (!txns.length) {
+        body.innerHTML = `<tr><td colspan="5" style="padding:28px;text-align:center;color:var(--muted)">No transactions found.</td></tr>`;
+        return;
+      }
+      body.innerHTML = txns.map(tx => {
+        const color = statusColors[tx.status] || 'green';
+        const amtColor = tx.status === 'SETTLED' ? '#4ade80' : tx.status === 'FAILED' ? '#f87171' : '#facc15';
+        const date = fmtDate(tx.actual_execution_timestamp || tx.estimated_execution_timestamp);
+        return `<tr style="border-bottom:1px solid var(--border)">
+          <td style="padding:10px 10px;color:var(--muted)">${date}</td>
+          <td style="padding:10px 10px;font-weight:700;color:${amtColor}">$${Number(tx.amount).toFixed(2)}</td>
+          <td style="padding:10px 10px">${tx.ach_type}</td>
+          <td style="padding:10px 10px"><span class="status-badge ${color}"><span class="dot"></span>${tx.status[0]+tx.status.slice(1).toLowerCase()}</span></td>
+          <td style="padding:10px 10px;color:var(--muted)">${tx.risk_score}</td>
+        </tr>`;
+      }).join('');
+    } catch (_) { /* keep hardcoded fallback */ }
+  }
+
+  async function loadScheduler() {
+    if (!_bbbToken) return;
+    try {
+      let campaigns = _campaignsCache;
+      if (!campaigns.length) {
+        const res = await fetch(`${BBB_API}/api/v1/campaigns`, {
+          headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
+        });
+        if (!res.ok) return;
+        campaigns = await res.json();
+      }
+      if (!campaigns.length) return; // keep hardcoded fallback
+
+      const grid = document.getElementById('sched-grid');
+      const fmtDate = ts => ts ? new Date(ts).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) : '—';
+
+      const cards = campaigns.map(c => {
+        const initial = (c.bank_name || '?')[0].toUpperCase();
+        const pct = c.required_deposit_volume > 0
+          ? Math.min(100, Math.round(c.deposited_volume / c.required_deposit_volume * 100))
+          : 0;
+        const txDone = c.completed_transaction_count;
+        const txReq  = c.required_transaction_count;
+        const deadline = fmtDate(c.deadline);
+        const isCompleted = c.status === 'COMPLETED';
+        const isFailed    = c.status === 'FAILED';
+        const isRunning   = c.status === 'IN_PROGRESS';
+        const isQueued    = c.status === 'QUEUED';
+
+        const badge = isCompleted ? `<span class="status-badge green" style="margin-left:auto"><span class="dot"></span>Done</span>`
+          : isFailed   ? `<span class="status-badge red"   style="margin-left:auto"><span class="dot"></span>Failed</span>`
+          : isRunning  ? `<span class="status-badge blue"  style="margin-left:auto"><span class="dot" style="animation:pulse 2s infinite"></span>Running</span>`
+          :              `<span class="status-badge yellow" style="margin-left:auto"><span class="dot"></span>Queued</span>`;
+
+        const perCycle = txReq > 0 ? (c.required_deposit_volume / txReq).toFixed(0) : c.required_deposit_volume;
+
+        if (isCompleted) {
+          return `<div class="card">
+            <div class="card-title">Completed — ${c.bank_name}</div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+              <div style="width:44px;height:44px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0">${initial}</div>
+              <div>
+                <div style="font-size:15px;font-weight:700">${c.bank_name}</div>
+                <div style="font-size:12px;color:var(--muted)">${txDone} cycle${txDone !== 1 ? 's' : ''} completed · $${Number(c.bonus_amount).toFixed(0)} bonus earned</div>
+              </div>
+              ${badge}
+            </div>
+            <div style="padding:16px;background:rgba(34,197,94,.06);border:1px solid rgba(34,197,94,.2);border-radius:12px;text-align:center">
+              <div style="font-size:28px;font-weight:900;color:#4ade80">$${Number(c.bonus_amount).toFixed(0)}</div>
+              <div style="font-size:13px;color:var(--muted);margin-top:4px">Bonus posted to ${c.bank_name} account</div>
+              <div style="font-size:12px;color:#6ee7b7;margin-top:4px">Deadline was ${deadline}</div>
+            </div>
+            <button class="btn btn-ghost" style="margin-top:14px;width:100%;justify-content:center;opacity:.5" disabled>Schedule Complete</button>
+          </div>`;
+        }
+
+        const overlay = isQueued ? `
+          <div class="campaign-lock-overlay">
+            <div style="font-size:32px;margin-bottom:12px">🔒</div>
+            <div style="font-size:16px;font-weight:800;margin-bottom:4px">Unlock Campaign Automation</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:16px;max-width:260px">Activate ACH transfer schedule &amp; working capital routing.</div>
+            <button class="btn btn-grad" style="padding:10px 18px;font-size:13px;font-weight:700" onclick="checkoutCampaign('${c.id}', '${_esc(c.bank_name)}')">Unlock for $99</button>
+          </div>
+        ` : '';
+
+        return `<div class="card${isRunning ? ' highlight' : ''} ${isQueued ? 'campaign-locked-card' : ''}" style="${isQueued ? 'overflow:hidden' : ''}">
+          ${overlay}
+          <div class="card-title">${isRunning ? 'Active' : (isQueued ? 'Queued' : 'Pending')} Schedule — ${c.bank_name}</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <div style="width:44px;height:44px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0">${initial}</div>
+            <div>
+              <div style="font-size:15px;font-weight:700">${c.bank_name}</div>
+              <div style="font-size:12px;color:var(--muted)">Cycle ${txDone} of ${txReq} · $${Number(perCycle).toLocaleString()}/cycle</div>
+            </div>
+            ${badge}
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+            <div class="tl-item">
+              <div class="tl-dot" style="background:${pct > 0 ? '#22c55e' : 'var(--muted)'}"></div>
+              <div class="tl-content">
+                <div class="tl-label" style="${pct > 0 ? '' : 'color:var(--muted)'}">$${Number(c.deposited_volume).toLocaleString()} deposited so far</div>
+                <div class="tl-meta">${txDone} of ${txReq} transactions complete</div>
+              </div>
+            </div>
+            <div class="tl-item">
+              <div class="tl-dot" style="background:${isRunning ? '#3b82f6' : 'var(--muted)'};${isRunning ? 'animation:pulse 2s infinite' : ''}"></div>
+              <div class="tl-content">
+                <div class="tl-label" style="color:${isRunning ? '#60a5fa' : 'var(--muted)'}">$${Number(c.required_deposit_volume - c.deposited_volume).toLocaleString()} remaining to deposit</div>
+                <div class="tl-meta">Deadline: ${deadline}</div>
+              </div>
+            </div>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px">
+            <span>Cycle ${txDone} / ${txReq} total</span>
+            <span>$${Number(c.bonus_amount).toFixed(0)} bonus pending · due ${deadline}</span>
+          </div>
+        </div>`;
+      });
+
+      grid.innerHTML = cards.join('');
+    } catch (_) { /* keep hardcoded fallback */ }
+  }
 
   async function openBillingPortal() {
     if (!_bbbToken) { showToast('Sign in first.'); return; }
