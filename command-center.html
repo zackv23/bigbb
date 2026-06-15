@@ -385,6 +385,15 @@
     .sched-error { font-size:13px; color:#f87171; min-height:18px; margin-bottom:8px; }
     .sched-spinner { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.35); border-top-color:#fff; border-radius:50%; animation:spin .6s linear infinite; vertical-align:middle; margin-right:8px; }
     @keyframes spin { to { transform:rotate(360deg); } }
+    .cw-step-dot { width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:#1e2130;color:var(--muted);flex-shrink:0;transition:all .2s; }
+    .cw-step-dot.active { background:rgba(201,169,110,.2);border:2px solid var(--gold);color:var(--gold); }
+    .cw-step-dot.done { background:var(--gold);color:#0a0b0f; }
+    .cw-bank-chip { padding:8px 12px;border-radius:8px;text-align:left;font-size:13px;cursor:pointer;background:#1e2130;border:1px solid var(--border);color:var(--sub);transition:all .15s; }
+    .cw-bank-chip:hover { border-color:var(--gold);color:var(--gold); }
+    .cw-bank-chip.selected { background:rgba(201,169,110,.15);border-color:var(--gold);color:var(--gold); }
+    .tx-tl-row { display:flex;align-items:center;gap:16px;padding-bottom:16px; }
+    .tx-tl-row:last-child { padding-bottom:0; }
+    .tx-tl-dot { width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700;z-index:1;position:relative; }
   </style>
   <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
 </head>
@@ -462,8 +471,22 @@
     </div>
     <div class="topbar-right">
       <span class="topbar-time" id="live-time"></span>
+      <!-- Notification Bell -->
+      <div style="position:relative" id="notif-wrap">
+        <button id="notif-btn" onclick="toggleNotifPanel()" style="background:none;border:none;cursor:pointer;padding:6px 8px;border-radius:8px;color:var(--muted);position:relative;display:flex;align-items:center" title="Notifications">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <span id="notif-badge" style="position:absolute;top:4px;right:4px;min-width:16px;height:16px;border-radius:8px;background:var(--gold);color:#0a0b0f;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 3px">2</span>
+        </button>
+        <div id="notif-panel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:320px;background:#0d0f18;border:1px solid var(--gold);border-radius:12px;box-shadow:0 16px 48px rgba(0,0,0,.5);z-index:200;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;font-weight:600;color:var(--text)">Notifications</span>
+            <button onclick="markAllNotifsRead()" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--gold);padding:0">Mark all read</button>
+          </div>
+          <div id="notif-list"></div>
+        </div>
+      </div>
       <button class="btn btn-ghost" onclick="window.location.reload()">↺ Refresh</button>
-      <button class="btn btn-grad" onclick="showPage('offers', document.querySelectorAll('.nav-item')[1]); showToast('Browse offers below — click Sign Up → Waiver to track one.')">
+      <button class="btn btn-grad" onclick="openCampaignWizard()">
         + Add Offer
       </button>
     </div>
@@ -653,6 +676,87 @@
         </button>
       </div>
     </div>
+  </div>
+
+    <!-- Row 4: Earnings Chart + Bonus Simulator -->
+    <div class="grid-2">
+      <!-- EarningsChart (ported from BBB-Frontend) -->
+      <div class="card" id="earnings-chart-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div>
+            <div class="card-title" style="font-family:Georgia,serif">Earnings Timeline</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:2px">Actual vs projected earnings</div>
+          </div>
+          <div style="display:flex;gap:16px;align-items:center;font-size:11px">
+            <span style="display:flex;align-items:center;gap:6px;color:var(--gold)"><span style="display:inline-block;width:24px;height:2px;background:var(--gold)"></span>Earned</span>
+            <span style="display:flex;align-items:center;gap:6px;color:var(--muted)"><span style="display:inline-block;width:24px;height:1px;background:repeating-linear-gradient(90deg,var(--muted) 0,var(--muted) 4px,transparent 4px,transparent 8px)"></span>Projected</span>
+          </div>
+        </div>
+        <svg id="earnings-svg" viewBox="0 0 560 180" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;overflow:visible">
+          <defs>
+            <linearGradient id="earnedGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c9a96e" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="#c9a96e" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+
+      <!-- SimulationCalculator (ported from BBB-Frontend) -->
+      <div class="card">
+        <div class="card-title" style="font-family:Georgia,serif;margin-bottom:4px">Bonus Simulator</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:16px">Model ROI before committing capital</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">Deposit ($)</div>
+            <input type="number" id="sim-deposit" value="5000" min="1" oninput="runSim()" style="width:100%;padding:8px 10px;border-radius:8px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">Bonus ($)</div>
+            <input type="number" id="sim-bonus" value="500" min="1" oninput="runSim()" style="width:100%;padding:8px 10px;border-radius:8px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px">Days</div>
+            <input type="number" id="sim-days" value="90" min="1" max="365" oninput="runSim()" style="width:100%;padding:8px 10px;border-radius:8px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:13px;outline:none;box-sizing:border-box">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+          <div style="padding:10px 12px;border-radius:8px;background:#0d0f17;border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">ROI</div>
+            <div id="sim-roi" style="font-size:18px;font-weight:800;font-family:Georgia,serif;color:#4ade80">10.0%</div>
+          </div>
+          <div style="padding:10px 12px;border-radius:8px;background:#0d0f17;border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Annual Equiv.</div>
+            <div id="sim-apy" style="font-size:18px;font-weight:800;font-family:Georgia,serif;color:var(--gold)">40.6%/yr</div>
+          </div>
+          <div style="padding:10px 12px;border-radius:8px;background:#0d0f17;border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Daily Rate</div>
+            <div id="sim-daily" style="font-size:18px;font-weight:800;font-family:Georgia,serif;color:var(--text)">$56/day</div>
+          </div>
+          <div style="padding:10px 12px;border-radius:8px;background:#0d0f17;border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">Weekly Rate</div>
+            <div id="sim-weekly" style="font-size:18px;font-weight:800;font-family:Georgia,serif;color:var(--text)">$389/wk</div>
+          </div>
+        </div>
+        <div id="sim-verdict" style="padding:10px 14px;border-radius:8px;background:#0d0f17;border:1px solid var(--border);font-size:12px;color:var(--muted);line-height:1.5"></div>
+      </div>
+    </div>
+
+    <!-- Row 5: Sankey Diagram (Bonus Flow) -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <div class="card-title" style="font-family:Georgia,serif">Bonus Flow</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Capital allocation across campaigns</div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:11px;color:var(--muted)">
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#f59e0b;display:inline-block"></span>Active</span>
+          <span style="display:flex;align-items:center;gap:6px"><span style="width:12px;height:12px;border-radius:3px;background:#4ade80;display:inline-block"></span>Completed</span>
+        </div>
+      </div>
+      <svg id="sankey-svg" viewBox="0 0 560 280" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto"></svg>
+    </div>
+
   </div>
 
   <!-- ══════════════════════════════════════════════════════
@@ -902,6 +1006,21 @@
           <option value="FAILED">Failed</option>
         </select>
         <button class="btn btn-ghost" onclick="loadTransactions()">↺ Refresh</button>
+      </div>
+    </div>
+
+    <!-- Transaction Timeline (ported from BBB-Frontend) -->
+    <div class="card" style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+        <div>
+          <div class="card-title" style="font-family:Georgia,serif">Transaction Timeline</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px">Scheduled ACH deposits</div>
+        </div>
+        <span id="tx-queued-badge" style="font-size:11px;padding:4px 10px;border-radius:20px;background:rgba(201,169,110,.1);color:var(--gold)">— queued</span>
+      </div>
+      <div style="position:relative">
+        <div style="position:absolute;left:19px;top:8px;bottom:8px;width:1px;background:var(--border)"></div>
+        <div id="tx-timeline-list" style="display:flex;flex-direction:column;gap:0"></div>
       </div>
     </div>
 
@@ -1385,6 +1504,98 @@
   </div>
 
 </main>
+
+<!-- ══════════════════════════════════════════════════════
+     CAMPAIGN WIZARD MODAL (ported from BBB-Frontend)
+══════════════════════════════════════════════════════════ -->
+<div id="campaign-wizard-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,11,15,.85);z-index:800;overflow-y:auto">
+  <div style="max-width:540px;margin:60px auto;padding:0 16px 60px">
+    <div style="background:#10121a;border:1px solid rgba(201,169,110,.35);border-radius:20px;padding:32px;box-shadow:0 0 60px rgba(0,0,0,.6)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+        <div style="font-size:20px;font-weight:800;font-family:Georgia,serif;color:var(--text)">New Campaign</div>
+        <button onclick="closeCampaignWizard()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--muted);line-height:1">×</button>
+      </div>
+
+      <!-- Step indicators -->
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px" id="cw-step-bar">
+        <div class="cw-step-dot active" data-step="1">1</div>
+        <div style="flex:1;height:1px;background:var(--border)" id="cw-line-1"></div>
+        <div class="cw-step-dot" data-step="2">2</div>
+        <div style="flex:1;height:1px;background:var(--border)" id="cw-line-2"></div>
+        <div class="cw-step-dot" data-step="3">3</div>
+        <span style="font-size:12px;color:var(--muted);margin-left:8px" id="cw-step-label">Select Bank</span>
+      </div>
+
+      <!-- Step 1: Bank selection -->
+      <div id="cw-step-1">
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px">Which bank?</div>
+        <input type="text" id="cw-bank-input" placeholder="Search or type bank name…" oninput="filterCwBanks(this.value)"
+          style="width:100%;padding:10px 14px;border-radius:10px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box;margin-bottom:12px">
+        <div id="cw-bank-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+      </div>
+
+      <!-- Step 2: Requirements -->
+      <div id="cw-step-2" style="display:none">
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px">Bonus requirements</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">Bonus Amount ($)</label>
+            <input type="number" id="cw-bonus" placeholder="500" min="1" style="width:100%;padding:10px 14px;border-radius:10px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">Required Deposits ($)</label>
+            <input type="number" id="cw-deposit-req" placeholder="5000" min="1" style="width:100%;padding:10px 14px;border-radius:10px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">Min. Transactions</label>
+            <input type="number" id="cw-tx-count" placeholder="10" min="1" style="width:100%;padding:10px 14px;border-radius:10px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">Deadline</label>
+            <input type="date" id="cw-deadline" style="width:100%;padding:10px 14px;border-radius:10px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;outline:none;box-sizing:border-box">
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:5px">Notes (optional)</label>
+          <textarea id="cw-notes" rows="2" placeholder="Any special requirements…" style="width:100%;padding:10px 14px;border-radius:10px;background:#0d0f17;border:1px solid var(--border);color:var(--text);font-size:14px;font-family:inherit;outline:none;resize:none;box-sizing:border-box"></textarea>
+        </div>
+      </div>
+
+      <!-- Step 3: Review -->
+      <div id="cw-step-3" style="display:none">
+        <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px">Review campaign</div>
+        <div style="border:1px solid var(--border);border-radius:10px;overflow:hidden" id="cw-review-rows"></div>
+        <div style="font-size:12px;color:#f87171;margin-top:10px;min-height:16px" id="cw-error"></div>
+      </div>
+
+      <!-- Navigation -->
+      <div style="display:flex;justify-content:space-between;margin-top:24px">
+        <button id="cw-back-btn" onclick="cwStep(-1)" style="padding:10px 20px;border-radius:10px;border:1px solid var(--border);color:var(--text);background:none;cursor:pointer;font-size:14px;opacity:.4;pointer-events:none">Back</button>
+        <button id="cw-next-btn" onclick="cwStep(1)" style="padding:10px 24px;border-radius:10px;background:linear-gradient(135deg,#c9a96e,#8a7355);color:#0a0b0f;font-weight:700;font-size:14px;border:none;cursor:pointer">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     ONBOARDING TOUR MODAL (ported from BBB-Frontend)
+══════════════════════════════════════════════════════════ -->
+<div id="tour-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,11,15,.7);z-index:9900;pointer-events:all">
+  <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;max-width:380px;padding:0 16px">
+    <div style="background:#10121a;border:1px solid rgba(201,169,110,.35);border-radius:20px;padding:28px;box-shadow:0 0 40px rgba(201,169,110,.15)">
+      <div id="tour-steps-bar" style="display:flex;gap:6px;margin-bottom:20px"></div>
+      <div style="font-size:16px;font-weight:700;font-family:Georgia,serif;color:var(--text);margin-bottom:10px" id="tour-title"></div>
+      <p style="font-size:13px;color:var(--muted);line-height:1.65;margin-bottom:24px" id="tour-body"></p>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <button onclick="dismissTour()" style="background:none;border:none;cursor:pointer;font-size:12px;color:var(--muted)">Skip tour</button>
+        <div style="display:flex;gap:8px">
+          <button id="tour-back-btn" onclick="tourNav(-1)" style="padding:8px 14px;border-radius:8px;border:1px solid var(--border);color:var(--text);background:none;cursor:pointer;font-size:12px;display:none">Back</button>
+          <button onclick="tourNav(1)" style="padding:8px 18px;border-radius:8px;background:linear-gradient(135deg,#c9a96e,#8a7355);color:#0a0b0f;font-weight:700;font-size:12px;border:none;cursor:pointer" id="tour-next-btn">Next →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Schedule Wizard Modal -->
 <div id="sched-modal" role="dialog" aria-modal="true" aria-labelledby="sched-modal-title">
@@ -3233,6 +3444,504 @@ Authorized and Signed Electronically.`;
       showToast('⚠ Could not open bank connection. Try again.');
     }
   }
+
+  // ══════════════════════════════════════════════════════════════════
+  // NOTIFICATION CENTER (ported from BBB-Frontend/ui/NotificationCenter)
+  // ══════════════════════════════════════════════════════════════════
+  const _NOTIFS = [
+    { id:'n1', type:'warning', title:'Wells Fargo deadline approaching', body:'8 days remaining to meet the $2,500 deposit requirement.', ts:'1h ago', read:false },
+    { id:'n2', type:'campaign', title:'Chase Sapphire bonus credited', body:'$900 bonus has been deposited to your account.', ts:'2h ago', read:false },
+    { id:'n3', type:'system', title:'Compliance check passed', body:'All active campaigns are compliant with bank requirements.', ts:'6h ago', read:true },
+  ];
+  let _notifs = [..._NOTIFS];
+
+  const _NOTIF_CFG = {
+    warning:  { color:'#f59e0b', bg:'rgba(245,158,11,.1)',  icon:'⚠' },
+    campaign: { color:'#4ade80', bg:'rgba(74,222,128,.1)',  icon:'✓' },
+    system:   { color:'#60a5fa', bg:'rgba(96,165,250,.1)', icon:'ℹ' },
+  };
+
+  function renderNotifPanel() {
+    const list = document.getElementById('notif-list');
+    const badge = document.getElementById('notif-badge');
+    if (!list) return;
+    const unread = _notifs.filter(n => !n.read).length;
+    badge.textContent = unread;
+    badge.style.display = unread > 0 ? 'flex' : 'none';
+    if (!_notifs.length) { list.innerHTML = '<div style="padding:32px 16px;text-align:center;color:var(--muted);font-size:13px">No notifications</div>'; return; }
+    list.innerHTML = _notifs.map((n, i) => {
+      const cfg = _NOTIF_CFG[n.type] || _NOTIF_CFG.system;
+      return `<div style="display:flex;gap:12px;padding:12px 16px;${i < _notifs.length-1 ? 'border-bottom:1px solid var(--border);' : ''}${n.read ? '' : 'border-left:2px solid var(--gold);padding-left:14px;background:rgba(201,169,110,.03)'}">
+        <div style="width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:${cfg.color};background:${cfg.bg};border:1px solid ${cfg.color}25;font-size:13px">${cfg.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:${n.read ? 400 : 600};color:var(--text);margin-bottom:2px">${n.title}</div>
+          <div style="font-size:11px;color:var(--muted);line-height:1.4">${n.body}</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px;opacity:.7">${n.ts}</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function toggleNotifPanel() {
+    const panel = document.getElementById('notif-panel');
+    const isOpen = panel.style.display !== 'none';
+    panel.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) renderNotifPanel();
+  }
+
+  function markAllNotifsRead() {
+    _notifs = _notifs.map(n => ({ ...n, read: true }));
+    renderNotifPanel();
+  }
+
+  // Close notif panel on outside click
+  document.addEventListener('click', e => {
+    const wrap = document.getElementById('notif-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      const panel = document.getElementById('notif-panel');
+      if (panel) panel.style.display = 'none';
+    }
+  });
+
+  // Pull real notifications from backend if available
+  async function loadNotifications() {
+    if (!_bbbToken) return;
+    try {
+      const r = await _apiFetch(`${BBB_API}/api/v1/agents/conversations`, { headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }) });
+      if (r.ok) {
+        const convs = await r.json();
+        if (Array.isArray(convs) && convs.length) {
+          const fresh = convs.slice(0, 5).map(c => ({
+            id: c.id, type: c.is_escalated ? 'warning' : 'campaign',
+            title: c.title || 'Support conversation',
+            body: `${c.messages?.length || 0} messages · ${c.channel}`,
+            ts: 'recent', read: false,
+          }));
+          _notifs = [...fresh, ..._NOTIFS.slice(fresh.length)];
+        }
+      }
+    } catch (_) {}
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // EARNINGS CHART (ported from BBB-Frontend/dashboard/EarningsChart)
+  // ══════════════════════════════════════════════════════════════════
+  function renderEarningsChart(data) {
+    const FALLBACK = [
+      { month:'Jan', earned:0, projected:500 },
+      { month:'Feb', earned:250, projected:750 },
+      { month:'Mar', earned:900, projected:1200 },
+      { month:'Apr', earned:1800, projected:2000 },
+      { month:'May', earned:3400, projected:3500 },
+      { month:'Jun', earned:5200, projected:6000 },
+    ];
+    const d = (data && data.length) ? data : FALLBACK;
+    const svg = document.getElementById('earnings-svg');
+    if (!svg) return;
+    const W=560, H=180, PAD={top:16,right:20,bottom:32,left:52};
+    const iW = W-PAD.left-PAD.right, iH = H-PAD.top-PAD.bottom;
+    const maxVal = Math.max(...d.flatMap(p => [p.earned, p.projected]));
+    const xStep = iW / (d.length - 1);
+    const sy = v => iH - (v/maxVal)*iH;
+    const pts = d.map((p, i) => ({ xe: i*xStep, ye: sy(p.earned), xp: i*xStep, yp: sy(p.projected) }));
+    const toLine = arr => arr.map((p, i) => `${i===0?'M':'L'} ${p.x} ${p.y}`).join(' ');
+    const earned = pts.map(p => ({ x:p.xe, y:p.ye }));
+    const proj   = pts.map(p => ({ x:p.xp, y:p.yp }));
+    const area = `${toLine(earned)} L ${earned[earned.length-1].x} ${iH} L 0 ${iH} Z`;
+    const yTicks = 4;
+    const ticks = Array.from({length:yTicks+1}, (_,i) => (maxVal/yTicks)*i);
+    svg.innerHTML = `
+      <defs><linearGradient id="eg2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c9a96e" stop-opacity=".18"/><stop offset="100%" stop-color="#c9a96e" stop-opacity="0"/></linearGradient></defs>
+      <g transform="translate(${PAD.left},${PAD.top})">
+        ${ticks.map(v => `<line x1="0" y1="${sy(v)}" x2="${iW}" y2="${sy(v)}" stroke="#1e2130" stroke-width="1"/>
+          <text x="-8" y="${sy(v)+4}" text-anchor="end" font-size="10" fill="#475569">${v>=1000?'$'+(v/1000).toFixed(0)+'k':'$'+v}</text>`).join('')}
+        ${d.map((p,i) => `<text x="${i*xStep}" y="${iH+20}" text-anchor="middle" font-size="11" fill="#475569">${p.month}</text>`).join('')}
+        <path d="${area}" fill="url(#eg2)"/>
+        <path d="${toLine(proj)}" fill="none" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5 4"/>
+        <path d="${toLine(earned)}" fill="none" stroke="#c9a96e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        ${earned.map((p,i) => `<circle cx="${p.x}" cy="${p.y}" r="3.5" fill="#c9a96e" stroke="#10121a" stroke-width="2" style="cursor:pointer" onmouseover="showEarnTooltip(${i},${p.x},${p.y},this)" onmouseout="hideEarnTooltip()"/>`).join('')}
+        <g id="earn-tooltip"></g>
+      </g>`;
+    // store data for tooltip
+    svg._chartData = d;
+    svg._iH = iH;
+    svg._PAD = PAD;
+  }
+
+  function showEarnTooltip(idx, px, py, el) {
+    const svg = document.getElementById('earnings-svg');
+    if (!svg || !svg._chartData) return;
+    const d = svg._chartData[idx];
+    const iH = svg._iH, PAD = svg._PAD;
+    const tipX = Math.min(px, (560 - PAD.left - PAD.right) - 115), tipY = Math.max(py - 68, 0);
+    document.getElementById('earn-tooltip').innerHTML = `
+      <g transform="translate(${tipX},${tipY})">
+        <rect x="0" y="0" width="110" height="60" rx="6" fill="#0d0f18" stroke="#c9a96e" stroke-width="1"/>
+        <text x="10" y="18" font-size="11" fill="#c9a96e" font-weight="600">${d.month}</text>
+        <text x="10" y="36" font-size="10" fill="#f1f2f4">Earned: $${d.earned.toLocaleString()}</text>
+        <text x="10" y="52" font-size="10" fill="#64748b">Proj: $${d.projected.toLocaleString()}</text>
+      </g>`;
+  }
+  function hideEarnTooltip() {
+    const t = document.getElementById('earn-tooltip');
+    if (t) t.innerHTML = '';
+  }
+
+  // Load real earnings data from backend
+  async function loadEarningsChart() {
+    if (!_bbbToken) { renderEarningsChart(null); return; }
+    try {
+      const r = await _apiFetch(`${BBB_API}/api/v1/agents/insights`, { headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }) });
+      if (!r.ok) { renderEarningsChart(null); return; }
+      const ins = await r.json();
+      // Map insights to chart format
+      const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      const data = ins.monthly_earnings
+        ? ins.monthly_earnings.map((m, i) => ({ month: months[i % 12], earned: m.earned || 0, projected: m.projected || 0 }))
+        : null;
+      renderEarningsChart(data);
+    } catch (_) { renderEarningsChart(null); }
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // SIMULATION CALCULATOR
+  // ══════════════════════════════════════════════════════════════════
+  function runSim() {
+    const dep = Number(document.getElementById('sim-deposit')?.value) || 0;
+    const bon = Number(document.getElementById('sim-bonus')?.value) || 0;
+    const days = Number(document.getElementById('sim-days')?.value) || 0;
+    if (!dep || !bon || !days) return;
+    const roi = (bon / dep) * 100;
+    const daily = dep / days;
+    const weekly = daily * 7;
+    const apy = (bon / ((dep * days) / 365)) * 100;
+    const roiColor = roi >= 8 ? '#4ade80' : roi >= 3 ? '#f59e0b' : '#f87171';
+    const riskLabel = daily > 2000 ? 'High Risk' : daily > 500 ? 'Medium Risk' : 'Low Risk';
+    const verdict = roi >= 15 ? 'Excellent opportunity — high ROI with manageable capital.' :
+                    roi >= 8  ? 'Good deal — solid returns on deployed capital.' :
+                    roi >= 3  ? 'Fair — worth doing alongside higher-yield campaigns.' :
+                                'Low ROI — consider higher-bonus offers first.';
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    const setStyle = (id, s, v) => { const el = document.getElementById(id); if (el) el.style[s] = v; };
+    set('sim-roi', `${roi.toFixed(1)}%`);
+    setStyle('sim-roi', 'color', roiColor);
+    set('sim-apy', `${apy.toFixed(0)}%/yr`);
+    set('sim-daily', `$${daily.toFixed(0)}/day`);
+    set('sim-weekly', `$${weekly.toFixed(0)}/wk`);
+    const vEl = document.getElementById('sim-verdict');
+    if (vEl) vEl.innerHTML = `<span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:10px;background:rgba(201,169,110,.1);color:var(--gold);margin-right:8px">${riskLabel}</span>${verdict}`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // SANKEY DIAGRAM (ported from BBB-Frontend/dashboard/SankeyDiagram)
+  // ══════════════════════════════════════════════════════════════════
+  function renderSankeyDiagram(campaigns) {
+    const svg = document.getElementById('sankey-svg');
+    if (!svg) return;
+    const W=560, H=280, NW=20, GAP=200, PAD=30;
+    // Build source/target from campaigns or fallback
+    let sources, targets, total;
+    if (campaigns && campaigns.length) {
+      const activeCamps = campaigns.filter(c => c.status === 'ACTIVE' || c.status === 'IN_PROGRESS');
+      const doneCamps = campaigns.filter(c => c.status === 'COMPLETED');
+      sources = activeCamps.slice(0, 5).map(c => ({ label: c.bank_name, value: c.required_deposit_volume || 1000 }));
+      if (!sources.length) sources = [{ label:'No active', value:1 }];
+      total = sources.reduce((s, n) => s + n.value, 0) || 1;
+      targets = [
+        { label:'Active', value: activeCamps.reduce((s, c) => s + (c.required_deposit_volume || 0), 0) || 1, color:'#f59e0b' },
+        { label:'Completed', value: doneCamps.reduce((s, c) => s + (c.bonus_amount || 0), 0) || 1, color:'#4ade80' },
+      ];
+    } else {
+      sources = [
+        { label:'Chase', value:16000 }, { label:'Citi', value:11000 },
+        { label:'Wells Fargo', value:9000 }, { label:'US Bank', value:6000 }, { label:'SoFi', value:5500 },
+      ];
+      targets = [{ label:'Active', value:28500, color:'#f59e0b' }, { label:'Completed', value:19000, color:'#4ade80' }];
+      total = sources.reduce((s,n) => s+n.value, 0);
+    }
+    const tTotal = targets.reduce((s,n) => s+n.value, 0) || 1;
+    const sH = H - PAD*2;
+    let sy = PAD;
+    const srcNodes = sources.map(n => { const h=(n.value/total)*sH; const node={...n,x:60,y:sy,h}; sy+=h+6; return node; });
+    let ty = PAD;
+    const tgtNodes = targets.map(n => { const h=(n.value/tTotal)*sH; const node={...n,x:60+NW+GAP,y:ty,h}; ty+=h+6; return node; });
+    // Build links (evenly distribute each source across targets)
+    const links = [];
+    srcNodes.forEach((sn, si) => {
+      tgtNodes.forEach((tn, ti) => {
+        const val = sn.value * (tn.value / tTotal);
+        const sh = (val/total)*sH, th = (val/tTotal)*sH;
+        links.push({ sx:60+NW, sy:sn.y + (si*0.5), tx:60+NW+GAP, ty:tn.y + (ti*0.3), sh, th, color: si%2===0 ? '#c9a96e' : '#8a7355' });
+      });
+    });
+    const path = l => {
+      const mx = (l.sx + l.tx)/2;
+      return `M ${l.sx} ${l.sy} C ${mx} ${l.sy}, ${mx} ${l.ty}, ${l.tx} ${l.ty} L ${l.tx} ${l.ty+l.th} C ${mx} ${l.ty+l.th}, ${mx} ${l.sy+l.sh}, ${l.sx} ${l.sy+l.sh} Z`;
+    };
+    svg.innerHTML = `
+      ${links.map(l => `<path d="${path(l)}" fill="${l.color}" opacity=".22"/>`).join('')}
+      ${srcNodes.map(n => `<g><rect x="${n.x}" y="${n.y}" width="${NW}" height="${n.h}" fill="#c9a96e" rx="2"/>
+        <text x="${n.x-8}" y="${n.y+n.h/2+4}" text-anchor="end" font-size="11" fill="#6b7280">${n.label}</text>
+        <text x="${n.x-8}" y="${n.y+n.h/2+16}" text-anchor="end" font-size="9" fill="#c9a96e">$${n.value>=1000?(n.value/1000).toFixed(0)+'k':n.value}</text></g>`).join('')}
+      ${tgtNodes.map(n => `<g><rect x="${n.x}" y="${n.y}" width="${NW}" height="${n.h}" fill="${n.color}" rx="2"/>
+        <text x="${n.x+NW+8}" y="${n.y+n.h/2+4}" text-anchor="start" font-size="11" fill="#f1f2f4">${n.label}</text>
+        <text x="${n.x+NW+8}" y="${n.y+n.h/2+16}" text-anchor="start" font-size="9" fill="${n.color}">$${n.value>=1000?(n.value/1000).toFixed(1)+'k':n.value}</text></g>`).join('')}`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // TRANSACTION TIMELINE (ported from BBB-Frontend/dashboard/TransactionTimeline)
+  // ══════════════════════════════════════════════════════════════════
+  const TX_STATUS_CFG = {
+    SETTLED:    { color:'#4ade80', bg:'rgba(74,222,128,.1)',  label:'Settled' },
+    PROCESSING: { color:'#f59e0b', bg:'rgba(245,158,11,.1)', label:'Processing' },
+    QUEUED:     { color:'#6b7280', bg:'rgba(107,114,128,.1)',label:'Queued' },
+    FAILED:     { color:'#f87171', bg:'rgba(248,113,113,.1)',label:'Failed' },
+  };
+
+  function renderTxTimeline(items) {
+    const list = document.getElementById('tx-timeline-list');
+    const badge = document.getElementById('tx-queued-badge');
+    if (!list) return;
+    const FALLBACK = [
+      { bank:'Chase Sapphire', amount:1250, date:'Jun 3', status:'SETTLED', ach_type:'PPD' },
+      { bank:'Citi Premier', amount:800, date:'Jun 3', status:'SETTLED', ach_type:'PPD' },
+      { bank:'Wells Fargo', amount:950, date:'Jun 4', status:'PROCESSING', ach_type:'PPD' },
+      { bank:'Chase Sapphire', amount:1250, date:'Jun 7', status:'QUEUED', ach_type:'PPD' },
+      { bank:'US Bank', amount:600, date:'Jun 8', status:'QUEUED', ach_type:'WEB' },
+      { bank:'SoFi Checking', amount:500, date:'Jun 10', status:'QUEUED', ach_type:'PPD' },
+    ];
+    const data = (items && items.length) ? items : FALLBACK;
+    const queued = data.filter(t => t.status === 'QUEUED').length;
+    if (badge) badge.textContent = `${queued} queued`;
+    list.innerHTML = data.slice(0, 7).map((tx, i) => {
+      const cfg = TX_STATUS_CFG[tx.status] || TX_STATUS_CFG.QUEUED;
+      const type = tx.ach_type || tx.transaction_type || 'PPD';
+      const bank = tx.bank || tx.institution_name || 'Bank';
+      const amt = tx.amount || tx.deposit_amount || 0;
+      const dt = tx.date || (tx.created_at ? new Date(tx.created_at).toLocaleDateString('en-US', {month:'short',day:'numeric'}) : '—');
+      return `<div class="tx-tl-row">
+        <div class="tx-tl-dot" style="background:${cfg.bg};border:1px solid ${cfg.color}30;color:${cfg.color}">${type.slice(0,1)}</div>
+        <div style="flex:1;display:flex;align-items:center;justify-content:space-between;padding:6px 0">
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--text)">${bank}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px">${dt} · ${type} Direct Deposit</div>
+          </div>
+          <div style="text-align:right;margin-left:16px">
+            <div style="font-size:13px;font-weight:700;color:var(--gold)">$${Number(amt).toLocaleString()}</div>
+            <span style="font-size:10px;padding:2px 6px;border-radius:10px;background:${cfg.bg};color:${cfg.color}">${cfg.label}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // Hook into loadTransactions to also render timeline
+  const _origLoadTx = typeof loadTransactions === 'function' ? loadTransactions : null;
+  async function loadTransactionsWithTimeline() {
+    if (_origLoadTx) await _origLoadTx();
+    if (!_bbbToken) { renderTxTimeline(null); return; }
+    try {
+      const r = await _apiFetch(`${BBB_API}/api/v1/transactions`, { headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }) });
+      if (!r.ok) { renderTxTimeline(null); return; }
+      const { transactions } = await r.json();
+      renderTxTimeline(transactions);
+    } catch (_) { renderTxTimeline(null); }
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // CAMPAIGN WIZARD (ported from BBB-Frontend/campaigns/CampaignWizard)
+  // ══════════════════════════════════════════════════════════════════
+  const CW_BANKS = ['Chase','Bank of America','Wells Fargo','Citibank','US Bank','Capital One','TD Bank','PNC Bank','Truist','Regions Bank','SoFi','Ally Bank'];
+  let _cwStep = 1;
+  let _cwData = { bank_name:'', bonus_amount:'', required_deposit_volume:'', required_transaction_count:'', deadline:'', notes:'' };
+
+  function openCampaignWizard() {
+    _cwStep = 1; _cwData = { bank_name:'', bonus_amount:'', required_deposit_volume:'', required_transaction_count:'', deadline:'', notes:'' };
+    document.getElementById('campaign-wizard-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    renderCwStep();
+  }
+
+  function closeCampaignWizard() {
+    document.getElementById('campaign-wizard-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+  }
+
+  function renderCwBankGrid(filter) {
+    const grid = document.getElementById('cw-bank-grid');
+    if (!grid) return;
+    const banks = filter ? CW_BANKS.filter(b => b.toLowerCase().includes(filter.toLowerCase())) : CW_BANKS;
+    grid.innerHTML = banks.map(b => `<button class="cw-bank-chip${_cwData.bank_name===b?' selected':''}" onclick="selectCwBank('${b}')">${b}</button>`).join('');
+  }
+
+  function filterCwBanks(v) {
+    _cwData.bank_name = v;
+    renderCwBankGrid(v);
+  }
+
+  function selectCwBank(name) {
+    _cwData.bank_name = name;
+    const inp = document.getElementById('cw-bank-input');
+    if (inp) inp.value = name;
+    renderCwBankGrid('');
+  }
+
+  function cwUpdateStepBar() {
+    const labels = { 1:'Select Bank', 2:'Bonus Requirements', 3:'Review & Confirm' };
+    const lbl = document.getElementById('cw-step-label');
+    if (lbl) lbl.textContent = labels[_cwStep] || '';
+    document.querySelectorAll('.cw-step-dot').forEach(dot => {
+      const s = Number(dot.dataset.step);
+      dot.classList.toggle('active', s === _cwStep);
+      dot.classList.toggle('done', s < _cwStep);
+      dot.textContent = s < _cwStep ? '✓' : s;
+    });
+    const back = document.getElementById('cw-back-btn');
+    if (back) { back.style.opacity = _cwStep > 1 ? '1' : '.4'; back.style.pointerEvents = _cwStep > 1 ? 'auto' : 'none'; }
+    const next = document.getElementById('cw-next-btn');
+    if (next) next.textContent = _cwStep < 3 ? 'Next →' : 'Create Campaign';
+  }
+
+  function renderCwStep() {
+    [1,2,3].forEach(s => { const el = document.getElementById(`cw-step-${s}`); if (el) el.style.display = s === _cwStep ? 'block' : 'none'; });
+    if (_cwStep === 1) renderCwBankGrid('');
+    if (_cwStep === 3) {
+      const rows = [
+        ['Bank', _cwData.bank_name],
+        ['Bonus', `$${Number(_cwData.bonus_amount).toLocaleString()}`],
+        ['Required deposits', `$${Number(_cwData.required_deposit_volume).toLocaleString()}`],
+        ['Min. transactions', _cwData.required_transaction_count],
+        ['Deadline', _cwData.deadline],
+        ...(_cwData.notes ? [['Notes', _cwData.notes]] : []),
+      ];
+      const rv = document.getElementById('cw-review-rows');
+      if (rv) rv.innerHTML = rows.map((r, i) => `<div style="display:flex;justify-content:space-between;padding:10px 14px;${i < rows.length-1 ? 'border-bottom:1px solid var(--border)':''};font-size:13px"><span style="color:var(--muted)">${r[0]}</span><span style="font-weight:600;color:var(--text)">${r[1]}</span></div>`).join('');
+    }
+    cwUpdateStepBar();
+  }
+
+  function cwValidate() {
+    if (_cwStep === 1) return _cwData.bank_name.trim().length > 0;
+    if (_cwStep === 2) return Number(_cwData.bonus_amount) > 0 && Number(_cwData.required_deposit_volume) > 0 && Number(_cwData.required_transaction_count) > 0 && _cwData.deadline.length > 0;
+    return true;
+  }
+
+  async function cwStep(dir) {
+    if (dir === 1) {
+      // Save step 2 data from inputs
+      if (_cwStep === 2) {
+        _cwData.bonus_amount = document.getElementById('cw-bonus')?.value || '';
+        _cwData.required_deposit_volume = document.getElementById('cw-deposit-req')?.value || '';
+        _cwData.required_transaction_count = document.getElementById('cw-tx-count')?.value || '';
+        _cwData.deadline = document.getElementById('cw-deadline')?.value || '';
+        _cwData.notes = document.getElementById('cw-notes')?.value || '';
+      }
+      if (!cwValidate()) { showToast('Please fill in all required fields.'); return; }
+      if (_cwStep === 3) { await cwSubmit(); return; }
+      _cwStep++;
+    } else {
+      _cwStep = Math.max(1, _cwStep - 1);
+    }
+    renderCwStep();
+  }
+
+  async function cwSubmit() {
+    if (!_bbbToken) { showToast('Sign in first.'); return; }
+    const errEl = document.getElementById('cw-error');
+    if (errEl) errEl.textContent = '';
+    const btn = document.getElementById('cw-next-btn');
+    if (btn) btn.textContent = 'Creating…';
+    try {
+      const res = await fetch(`${BBB_API}/api/v1/campaigns`, {
+        method: 'POST',
+        headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}`, 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          bank_name: _cwData.bank_name,
+          bonus_amount: Number(_cwData.bonus_amount),
+          required_deposit_volume: Number(_cwData.required_deposit_volume),
+          required_transaction_count: Number(_cwData.required_transaction_count),
+          deadline: new Date(_cwData.deadline).toISOString(),
+          notes: _cwData.notes || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `Error ${res.status}`);
+      }
+      closeCampaignWizard();
+      showToast('Campaign created! Loading…');
+      setTimeout(() => { showPage('offers', document.querySelectorAll('.nav-item')[1]); loadOffers?.(); }, 800);
+    } catch (e) {
+      if (errEl) errEl.textContent = e.message || 'Something went wrong.';
+      if (btn) btn.textContent = 'Create Campaign';
+    }
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // ONBOARDING TOUR (ported from BBB-Frontend/ui/OnboardingTour)
+  // ══════════════════════════════════════════════════════════════════
+  const TOUR_STEPS = [
+    { title:'Welcome to BigBankBonus', body:'This quick tour shows you the key features. You can replay it from Settings → Help.' },
+    { title:'Your Dashboard', body:'The Overview shows your total earned bonuses, active campaigns, and fee waiver status at a glance.' },
+    { title:'Create a Campaign', body:'Click "+ Add Offer" in the top bar to set up a new bank bonus campaign — pick a bank, enter the bonus, and set a deadline.' },
+    { title:'Link Your Banks', body:'Go to Linked Banks → + Link Bank to securely connect accounts via Plaid. Your credentials never touch our servers.' },
+    { title:'Let the AI Work', body:'Once linked, the AI Scheduler optimizes your deposit timing to maximize bonus completion rates.' },
+  ];
+  let _tourStep = 0;
+
+  function initTour() {
+    if (localStorage.getItem('bb_tour_done')) return;
+    setTimeout(() => {
+      _tourStep = 0;
+      renderTour();
+      document.getElementById('tour-overlay').style.display = 'block';
+    }, 2000);
+  }
+
+  function renderTour() {
+    const bar = document.getElementById('tour-steps-bar');
+    if (bar) bar.innerHTML = TOUR_STEPS.map((_, i) => `<div style="flex:${i===_tourStep?2:1};height:4px;border-radius:2px;background:${i<=_tourStep?'var(--gold)':'var(--border)'};transition:flex .3s"></div>`).join('');
+    const t = document.getElementById('tour-title'); if (t) t.textContent = TOUR_STEPS[_tourStep].title;
+    const b = document.getElementById('tour-body'); if (b) b.textContent = TOUR_STEPS[_tourStep].body;
+    const back = document.getElementById('tour-back-btn'); if (back) back.style.display = _tourStep > 0 ? 'inline-block' : 'none';
+    const next = document.getElementById('tour-next-btn'); if (next) next.textContent = _tourStep === TOUR_STEPS.length-1 ? 'Get Started' : 'Next →';
+  }
+
+  function tourNav(dir) {
+    if (dir === 1 && _tourStep >= TOUR_STEPS.length - 1) { dismissTour(); return; }
+    _tourStep = Math.max(0, Math.min(TOUR_STEPS.length-1, _tourStep + dir));
+    renderTour();
+  }
+
+  function dismissTour() {
+    localStorage.setItem('bb_tour_done', '1');
+    document.getElementById('tour-overlay').style.display = 'none';
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // INIT — wire all new components on page load
+  // ══════════════════════════════════════════════════════════════════
+  document.addEventListener('DOMContentLoaded', () => {
+    runSim();           // initial simulation render
+    renderEarningsChart(null);   // render with fallback data, then load real data
+    renderSankeyDiagram(null);   // render with fallback
+    renderTxTimeline(null);      // render tx timeline with fallback
+    initTour();         // show tour if first visit
+
+    // Load real data after auth
+    setTimeout(async () => {
+      await loadNotifications();
+      await loadEarningsChart();
+      // Load campaigns for sankey
+      if (_bbbToken) {
+        try {
+          const r = await _apiFetch(`${BBB_API}/api/v1/campaigns`, { headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }) });
+          if (r.ok) { const { campaigns } = await r.json(); renderSankeyDiagram(campaigns); }
+        } catch (_) {}
+        await loadTransactionsWithTimeline();
+      }
+    }, 1500);
+  });
 </script>
 </body>
 </html>
