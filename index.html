@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <script src="https://cdn.plaid.com/link/v2/stable/link-initialize.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1067,12 +1068,15 @@
           ux_mode:   'popup',
         });
         google.accounts.id.prompt(n => {
-          if (n.isNotDisplayed() || n.isSkippedMoment())
-            window.location.href = BBB_API + '/api/v1/auth/oauth/google';
+          if (n.isNotDisplayed() || n.isSkippedMoment()) {
+            const dest = encodeURIComponent(window.location.origin + '/command-center.html');
+            window.location.href = BBB_API + '/api/v1/auth/oauth/google?return_to=' + dest;
+          }
         });
       } else if (attempts > 20) {
         clearInterval(poll);
-        window.location.href = BBB_API + '/api/v1/auth/oauth/google';
+        const dest = encodeURIComponent(window.location.origin + '/command-center.html');
+        window.location.href = BBB_API + '/api/v1/auth/oauth/google?return_to=' + dest;
       }
     }, 150);
   }
@@ -1465,12 +1469,15 @@
           ux_mode:   'popup',
         });
         google.accounts.id.prompt(n => {
-          if (n.isNotDisplayed() || n.isSkippedMoment())
-            window.location.href = BBB_API + '/api/v1/auth/oauth/google';
+          if (n.isNotDisplayed() || n.isSkippedMoment()) {
+            const dest = encodeURIComponent(window.location.origin + '/command-center.html');
+            window.location.href = BBB_API + '/api/v1/auth/oauth/google?return_to=' + dest;
+          }
         });
       } else if (attempts > 20) {
         clearInterval(poll);
-        window.location.href = BBB_API + '/api/v1/auth/oauth/google';
+        const dest = encodeURIComponent(window.location.origin + '/command-center.html');
+        window.location.href = BBB_API + '/api/v1/auth/oauth/google?return_to=' + dest;
       }
     }, 150);
   }
