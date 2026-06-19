@@ -3250,14 +3250,20 @@ Authorized and Signed Electronically.`;
   loadScheduler();
 
   async function loadTransactions() {
-    if (!_bbbToken) return;
+    if (!_bbbToken) {
+      renderTxTimeline(null);
+      return;
+    }
     const statusFilter = document.getElementById('tx-filter-status')?.value || '';
     const url = `${BBB_API}/api/v1/transactions${statusFilter ? '?status=' + statusFilter : ''}`;
     try {
       const res = await fetch(url, {
         headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }),
       });
-      if (!res.ok) return; // keep hardcoded fallback
+      if (!res.ok) {
+        renderTxTimeline(null);
+        return; // keep hardcoded fallback
+      }
       const txns = await res.json();
 
       const statusColors = { SETTLED: 'green', QUEUED: 'yellow', PROCESSING: 'blue', FAILED: 'red' };
@@ -3269,6 +3275,7 @@ Authorized and Signed Electronically.`;
       const body = document.getElementById('tx-body');
       if (!txns.length) {
         body.innerHTML = `<tr><td colspan="5" style="padding:28px;text-align:center;color:var(--muted)">No transactions found.</td></tr>`;
+        renderTxTimeline(null);
         return;
       }
       body.innerHTML = txns.map(tx => {
@@ -3283,7 +3290,10 @@ Authorized and Signed Electronically.`;
           <td style="padding:10px 10px;color:var(--muted)">${tx.risk_score}</td>
         </tr>`;
       }).join('');
-    } catch (_) { /* keep hardcoded fallback */ }
+      renderTxTimeline(txns);
+    } catch (_) {
+      renderTxTimeline(null);
+    }
   }
 
   async function loadScheduler() {
@@ -3735,18 +3745,6 @@ Authorized and Signed Electronically.`;
     }).join('');
   }
 
-  // Hook into loadTransactions to also render timeline
-  const _origLoadTx = typeof loadTransactions === 'function' ? loadTransactions : null;
-  async function loadTransactionsWithTimeline() {
-    if (_origLoadTx) await _origLoadTx();
-    if (!_bbbToken) { renderTxTimeline(null); return; }
-    try {
-      const r = await _apiFetch(`${BBB_API}/api/v1/transactions`, { headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }) });
-      if (!r.ok) { renderTxTimeline(null); return; }
-      const { transactions } = await r.json();
-      renderTxTimeline(transactions);
-    } catch (_) { renderTxTimeline(null); }
-  }
 
   // ══════════════════════════════════════════════════════════════════
   // CAMPAIGN WIZARD (ported from BBB-Frontend/campaigns/CampaignWizard)
@@ -3936,9 +3934,9 @@ Authorized and Signed Electronically.`;
       if (_bbbToken) {
         try {
           const r = await _apiFetch(`${BBB_API}/api/v1/campaigns`, { headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}` }) });
-          if (r.ok) { const { campaigns } = await r.json(); renderSankeyDiagram(campaigns); }
+          if (r.ok) { const campaigns = await r.json(); renderSankeyDiagram(campaigns); }
         } catch (_) {}
-        await loadTransactionsWithTimeline();
+        await loadTransactions();
       }
     }, 1500);
   });
