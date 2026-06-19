@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BigBankBonus — Velocity & Bank Risk Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #070a13;
+      --bg-card: rgba(17, 23, 41, 0.65);
+      --bg-card-hover: rgba(26, 35, 60, 0.8);
+      --border: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      --text-main: #f3f4f6;
+      --text-sub: #9ca3af;
+      --primary: #6366f1;
+      --primary-glow: rgba(99, 102, 241, 0.15);
+      --accent-cyan: #06b6d4;
+      --accent-green: #10b981;
+      --accent-yellow: #f59e0b;
+      --accent-red: #ef4444;
+      --font-outfit: 'Outfit', sans-serif;
+      --font-inter: 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-inter);
+      overflow-x: hidden;
+      min-height: 100vh;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.08) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    /* Smooth Scrollbar */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-dark);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 50px;
+      animation: fadeIn 0.8s ease-out;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      background: rgba(99, 102, 241, 0.1);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-family: var(--font-outfit);
+      font-size: 42px;
+      font-weight: 800;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #fff 30%, #a5b4fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 16px;
+    }
+
+    .subtitle {
+      color: var(--text-sub);
+      font-size: 18px;
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* Grid Layout */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 30px;
+      margin-bottom: 50px;
+    }
+
+    @media (max-width: 968px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card Styling */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card:hover {
+      border-color: var(--border-hover);
+      box-shadow: 0 15px 35px rgba(99, 102, 241, 0.05);
+    }
+
+    .card-title {
+      font-family: var(--font-outfit);
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card-title svg {
+      color: var(--primary);
+    }
+
+    /* Simulator Panel */
+    .input-group {
+      margin-bottom: 30px;
+    }
+
+    .input-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .label-title {
+      font-weight: 500;
+      font-size: 15px;
+      color: var(--text-main);
+    }
+
+    .label-value {
+      font-family: var(--font-outfit);
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--primary);
+      background: rgba(99, 102, 241, 0.1);
+      padding: 2px 10px;
+      border-radius: 8px;
+    }
+
+    /* Premium Custom Range Slider */
+    .slider-container {
+      position: relative;
+      width: 100%;
+      height: 8px;
+    }
+
+    .range-slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      transition: background 0.3s;
+    }
+
+    .range-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 3px solid #fff;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+      transition: transform 0.1s, background-color 0.2s;
+    }
+
+    .range-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+      background: #818cf8;
+    }
+
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px;
+      margin-top: 10px;
+    }
+
+    .tick-label {
+      font-size: 11px;
+      color: var(--text-sub);
+      cursor: pointer;
+    }
+
+    /* Static profile box */
+    .profile-summary {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 18px;
+      margin-top: 24px;
+    }
+
+    .profile-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-sub);
+      margin-bottom: 10px;
+    }
+
+    .profile-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .tag {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 10px;
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    /* KPI Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    .kpi-box {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 20px;
+      padding: 22px;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-box::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: var(--primary);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .kpi-box:hover::before {
+      opacity: 1;
+    }
+
+    .kpi-box.risk-high::before { background: var(--accent-red); }
+    .kpi-box.risk-med::before { background: var(--accent-yellow); }
+    .kpi-box.risk-low::before { background: var(--accent-green); }
+
+    .kpi-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-sub);
+      margin-bottom: 8px;
+    }
+
+    .kpi-value {
+      font-family: var(--font-outfit);
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .kpi-desc {
+      font-size: 11px;
+      color: var(--text-sub);
+      margin-top: 4px;
+    }
+
+    /* Dynamic Colors for values */
+    .color-green { color: var(--accent-green) !important; }
+    .color-yellow { color: var(--accent-yellow) !important; }
+    .color-red { color: var(--accent-red) !important; }
+
+    /* Flow Chart section */
+    .flow-chart-container {
+      margin-top: 50px;
+      animation: fadeIn 1.2s ease-out;
+    }
+
+    .section-title {
+      font-family: var(--font-outfit);
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 30px;
+      text-align: center;
+      background: linear-gradient(135deg, #fff, var(--text-sub));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .timeline {
+      position: relative;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px 0;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background: linear-gradient(to bottom, var(--primary), var(--accent-cyan), rgba(255,255,255,0.05));
+      transform: translateX(-50%);
+    }
+
+    @media (max-width: 768px) {
+      .timeline::before {
+        left: 20px;
+      }
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 40px;
+      width: 50%;
+      padding: 0 40px;
+    }
+
+    .timeline-item:nth-child(odd) {
+      left: 0;
+      text-align: right;
+    }
+
+    .timeline-item:nth-child(even) {
+      left: 50%;
+      text-align: left;
+    }
+
+    @media (max-width: 768px) {
+      .timeline-item {
+        width: 100%;
+        left: 0 !important;
+        padding-left: 50px;
+        padding-right: 0;
+        text-align: left !important;
+      }
+    }
+
+    .timeline-dot {
+      position: absolute;
+      top: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--bg-dark);
+      border: 3px solid var(--primary);
+      z-index: 2;
+      transition: all 0.3s ease;
+    }
+
+    .timeline-item:nth-child(odd) .timeline-dot {
+      right: -8px;
+    }
+
+    .timeline-item:nth-child(even) .timeline-dot {
+      left: -8px;
+    }
+
+    @media (max-width: 768px) {
+      .timeline-dot {
+        left: 12px !important;
+      }
+    }
+
+    .timeline-item:hover .timeline-dot {
+      background: var(--primary);
+      transform: scale(1.3);
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    .timeline-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .timeline-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+
+    .timeline-step {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--accent-cyan);
+      margin-bottom: 6px;
+    }
+
+    .timeline-title {
+      font-family: var(--font-outfit);
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .timeline-desc {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+
+    /* Bank Grid Section */
+    .bank-section {
+      margin-top: 50px;
+    }
+
+    .bank-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .bank-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .bank-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      transform: translateY(-3px);
+    }
+
+    .bank-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 16px;
+      gap: 10px;
+    }
+
+    .bank-logo {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fff;
+      padding: 6px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .bank-name {
+      font-family: var(--font-outfit);
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+
+    .bank-sensitivity-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 12px;
+    }
+
+    .sens-critical { background: rgba(239, 68, 110, 0.1); border: 1px solid rgba(239, 68, 110, 0.3); color: #f87171; }
+    .sens-high { background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); color: #fbbf24; }
+    .sens-moderate { background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.3); color: #818cf8; }
+    .sens-low { background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); color: #34d399; }
+
+    .bank-details {
+      font-size: 12px;
+      color: var(--text-sub);
+      line-height: 1.4;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Interactive animations for KPIs */
+    .pulse-glow {
+      animation: pulseGlow 2s infinite;
+    }
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+      50% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.4); }
+      100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.2); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    
+    <header>
+      <div class="badge">Simulation Dashboard</div>
+      <h1>Bank Velocity & Risk Simulator</h1>
+      <p class="subtitle">Analyze how account-opening velocity impacts bank risk scoring models, ChexSystems approvals, and credit metrics for a prime, inquiries-free profile.</p>
+    </header>
+
+    <div class="dashboard-grid">
+      
+      <!-- Left Panel: Interactive Simulator -->
+      <div class="card">
+        <div class="card-title">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/></svg>
+          Interactive Churn Velocity Controls
+        </div>
+
+        <div class="input-group">
+          <div class="input-header">
+            <span class="label-title">Velocity (New Accounts / 90 Days)</span>
+            <span class="label-value" id="val-velocity">1</span>
+          </div>
+          <div class="slider-container">
+            <input type="range" class="range-slider" id="slider-velocity" min="1" max="8" value="1">
+          </div>
+          <div class="slider-ticks">
+            <span class="tick-label" onclick="setSlider(1)">1 (Low)</span>
+            <span class="tick-label" onclick="setSlider(3)">3 (Med)</span>
+            <span class="tick-label" onclick="setSlider(5)">5 (High)</span>
+            <span class="tick-label" onclick="setSlider(8)">8+ (Extreme)</span>
+          </div>
+        </div>
+
+        <div class="profile-summary">
+          <div class="profile-title">Baseline User Risk Profile</div>
+          <div class="profile-tags">
+            <span class="tag">Age: Under 30</span>
+            <span class="tag">FICO Score: 740 (Prime)</span>
+            <span class="tag" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3)">Inquiries: 0 in 24 Months</span>
+            <span class="tag">ChexSystems: Clean Slate</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: KPIs -->
+      <div class="kpi-grid">
+        <!-- KPI 1: Risk Level -->
+        <div class="kpi-box risk-low" id="kpi-card-risk">
+          <div class="kpi-label">ChexSystems Risk Level</div>
+          <div class="kpi-value color-green" id="kpi-risk">VERY LOW</div>
+          <div class="kpi-desc" id="kpi-risk-desc">Baseline clean profile. Optimal approval index.</div>
+        </div>
+
+        <!-- KPI 2: Approval Odds -->
+        <div class="kpi-box" id="kpi-card-odds">
+          <div class="kpi-label">Estimated Approval Odds</div>
+          <div class="kpi-value" id="kpi-odds" style="color: var(--accent-green);">98%</div>
+          <div class="kpi-desc">Across all velocity tiers.</div>
+        </div>
+
+        <!-- KPI 3: Credit Score Impact -->
+        <div class="kpi-box" id="kpi-card-fico">
+          <div class="kpi-label">FICO Middle Score</div>
+          <div class="kpi-value" id="kpi-fico">740</div>
+          <div class="kpi-desc" id="kpi-fico-diff">0 pt impact (Stable)</div>
+        </div>
+
+        <!-- KPI 4: Recommendation -->
+        <div class="kpi-box" id="kpi-card-cool">
+          <div class="kpi-label">Recommended Cooling</div>
+          <div class="kpi-value" id="kpi-cool" style="color: var(--accent-cyan);">None</div>
+          <div class="kpi-desc">Before starting next campaign.</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Timeline/Flow Chart -->
+    <div class="flow-chart-container">
+      <h2 class="section-title">ChexSystems & EWS Application Flow Chart</h2>
+      
+      <div class="timeline">
+        <!-- Step 1 -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-step">Step 1 — Identity & Credit Check (Soft Pull)</div>
+            <div class="timeline-title">FICO Checking & KYC verification</div>
+            <div class="timeline-desc">FICO is pulled (usually soft, rarely hard). Your 740 score establishes premium financial stability. Under-30 age represents a normal profile, creating no flags.</div>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-step">Step 2 — ChexSystems Query</div>
+            <div class="timeline-title">Recent Inquiry & Account Velocity Check</div>
+            <div class="timeline-desc" id="flow-chex">A clean profile with 0 inquiries in 24 months represents 0 risk. Under current velocity, ChexSystems reports 1 inquiry. The bank views this as normal consumer behavior. Approval rates remain high.</div>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-step">Step 3 — EWS Risk Scoring</div>
+            <div class="timeline-title">Early Warning Services Multi-Bank Database</div>
+            <div class="timeline-desc" id="flow-ews">EWS checks for cross-bank account status, charge-offs, and velocity indicators. Since your history is clean, no negative file is returned. Velocity flags are not triggered.</div>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-card">
+            <div class="timeline-step">Step 4 — Bank Final Decision</div>
+            <div class="timeline-title">Automation Engine Outcome</div>
+            <div class="timeline-desc" id="flow-decision">Instant Approval. The bank's risk algorithms return green across all checks. Welcome emails and onboarding deposit rails ($100 seed) are triggered immediately.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bank Grid Sensitivity Section -->
+    <div class="bank-section">
+      <h2 class="section-title">Major Bank Velocity Sensitivity & Thresholds</h2>
+      <div class="bank-grid">
+        
+        <!-- US Bank -->
+        <div class="bank-card">
+          <div class="bank-header">
+            <div class="bank-logo">
+              <!-- SVG Favicon for US Bank -->
+              <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="50" fill="#0C2340"/>
+                <path d="M30 45H70V55H30V45Z" fill="white"/>
+                <path d="M50 25L70 45H30L50 25Z" fill="white"/>
+                <path d="M30 55H70V65C70 70 65 75 50 75C35 75 30 70 30 65V55Z" fill="white"/>
+              </svg>
+            </div>
+            <div class="bank-name">U.S. Bank</div>
+          </div>
+          <span class="bank-sensitivity-badge sens-critical">Critical</span>
+          <div class="bank-details">Highly sensitive. Auto-denials trigger at 2+ inquiries in 12 months. Should always be done first in any cycle.</div>
+        </div>
+
+        <!-- Chase -->
+        <div class="bank-card">
+          <div class="bank-header">
+            <div class="bank-logo">
+              <!-- SVG Favicon for Chase -->
+              <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect width="100" height="100" rx="20" fill="#117ACA"/>
+                <path d="M50 20L80 50L50 80L20 50L50 20Z" stroke="white" stroke-width="8"/>
+                <path d="M50 35L65 50L50 65L35 50L50 35Z" fill="white"/>
+              </svg>
+            </div>
+            <div class="bank-name">Chase</div>
+          </div>
+          <span class="bank-sensitivity-badge sens-high">High</span>
+          <div class="bank-details">Checks credit report (FICO) and ChexSystems. Sensitive to multiple accounts opened in the last 30 days.</div>
+        </div>
+
+        <!-- Wells Fargo -->
+        <div class="bank-card">
+          <div class="bank-header">
+            <div class="bank-logo">
+              <!-- SVG Favicon for Wells Fargo -->
+              <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="50" fill="#D32F2F"/>
+                <text x="50" y="62" fill="#FFC107" font-family="'Outfit', sans-serif" font-weight="900" font-size="36" text-anchor="middle">W</text>
+              </svg>
+            </div>
+            <div class="bank-name">Wells Fargo</div>
+          </div>
+          <span class="bank-sensitivity-badge sens-moderate">Moderate</span>
+          <div class="bank-details">Primarily utilizes EWS. Generally accepts 2-3 inquiries per 90 days, but flags higher velocity as fraud risk.</div>
+        </div>
+
+        <!-- SoFi -->
+        <div class="bank-card">
+          <div class="bank-header">
+            <div class="bank-logo">
+              <!-- SVG Favicon for SoFi -->
+              <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="50" fill="#00C1A9"/>
+                <circle cx="35" cy="40" r="8" fill="white"/>
+                <circle cx="65" cy="40" r="8" fill="white"/>
+                <circle cx="35" cy="65" r="8" fill="white"/>
+                <circle cx="65" cy="65" r="8" fill="white"/>
+              </svg>
+            </div>
+            <div class="bank-name">SoFi</div>
+          </div>
+          <span class="bank-sensitivity-badge sens-low">Low</span>
+          <div class="bank-details">Very lenient. High approval rates even with extreme velocity. Excellent candidate for late-stage campaigns.</div>
+        </div>
+
+        <!-- Fidelity -->
+        <div class="bank-card">
+          <div class="bank-header">
+            <div class="bank-logo">
+              <!-- SVG Favicon for Fidelity -->
+              <svg width="28" height="28" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="50" fill="#3B7A57"/>
+                <path d="M50 25L30 40H42V75H58V40H70L50 25Z" fill="white"/>
+              </svg>
+            </div>
+            <div class="bank-name">Fidelity</div>
+          </div>
+          <span class="bank-sensitivity-badge sens-low">Low</span>
+          <div class="bank-details">Brokerage and CMA accounts are very lenient. Highly recommended as your primary funding hub (Fidelity Rail).</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const slider = document.getElementById('slider-velocity');
+    const valVelocity = document.getElementById('val-velocity');
+
+    const kpiCardRisk = document.getElementById('kpi-card-risk');
+    const kpiRisk = document.getElementById('kpi-risk');
+    const kpiRiskDesc = document.getElementById('kpi-risk-desc');
+
+    const kpiOdds = document.getElementById('kpi-odds');
+    
+    const kpiFico = document.getElementById('kpi-fico');
+    const kpiFicoDiff = document.getElementById('kpi-fico-diff');
+
+    const kpiCool = document.getElementById('kpi-cool');
+
+    const flowChex = document.getElementById('flow-chex');
+    const flowEws = document.getElementById('flow-ews');
+    const flowDecision = document.getElementById('flow-decision');
+
+    function setSlider(val) {
+      slider.value = val;
+      updateUI(val);
+    }
+
+    slider.addEventListener('input', (e) => {
+      updateUI(e.target.value);
+    });
+
+    function updateUI(velocity) {
+      valVelocity.textContent = velocity;
+
+      // Reset classes
+      kpiCardRisk.className = 'kpi-box';
+      
+      let riskLevel = '';
+      let odds = '';
+      let fico = 740;
+      let ficoDiff = 0;
+      let cooling = '';
+      let riskClass = '';
+      
+      let chexText = '';
+      let ewsText = '';
+      let decisionText = '';
+
+      if (velocity <= 1) {
+        riskLevel = 'VERY LOW';
+        odds = '98%';
+        ficoDiff = 0;
+        cooling = 'None';
+        riskClass = 'risk-low';
+        kpiRisk.style.color = 'var(--accent-green)';
+        kpiOdds.style.color = 'var(--accent-green)';
+        
+        chexText = 'A clean profile with 0 inquiries in 24 months represents 0 risk. Under current velocity, ChexSystems reports 1 inquiry. The bank views this as normal consumer behavior. Approval rates remain high.';
+        ewsText = 'EWS checks for cross-bank account status, charge-offs, and velocity indicators. Since your history is clean, no negative file is returned. Velocity flags are not triggered.';
+        decisionText = 'Instant Approval. The bank\'s risk algorithms return green across all checks. Welcome emails and onboarding deposit rails ($100 seed) are triggered immediately.';
+      } else if (velocity <= 3) {
+        riskLevel = 'MODERATE';
+        odds = '92%';
+        ficoDiff = -8;
+        cooling = '30 Days';
+        riskClass = 'risk-med';
+        kpiRisk.style.color = 'var(--accent-yellow)';
+        kpiOdds.style.color = 'var(--accent-green)';
+        
+        chexText = `Under moderate velocity, ChexSystems reports ${velocity} inquiries. Most mainstream banks remain highly receptive, but automated flags are active for velocity-sensitive banks (like U.S. Bank).`;
+        ewsText = `Early Warning Services logs ${velocity} opened accounts in a compressed timeframe. Jitter algorithms might detect a minor pattern, but standard retail profiles easily clear.`;
+        decisionText = 'Automated approval for 90%+ of banks. Highly sensitive banks might redirect to manual verification (requiring identity call / utility bill verification).';
+      } else if (velocity <= 5) {
+        riskLevel = 'HIGH';
+        odds = '65%';
+        ficoDiff = -22;
+        cooling = '60 Days';
+        riskClass = 'risk-high';
+        kpiRisk.style.color = 'var(--accent-red)';
+        kpiOdds.style.color = 'var(--accent-yellow)';
+        
+        chexText = `Under high velocity, ChexSystems reports ${velocity} inquiries. Automated security models trigger warning signals for "unusual banking activity". Risk indicators spike.`;
+        ewsText = 'EWS flags "multiple new depository links" in under 90 days. Rapid sequencing of checking accounts signals a high correlation with account abuse or bonus manipulation.';
+        decisionText = 'Frequent auto-denials. Expect 35%+ rejection rates. Approvals are limited to lenient fintech banks (like SoFi). Sensitive targets (Chase, Wells) will deny.';
+      } else {
+        riskLevel = 'CRITICAL';
+        odds = '25%';
+        ficoDiff = -45;
+        cooling = '90+ Days';
+        riskClass = 'risk-high';
+        kpiRisk.style.color = 'var(--accent-red)';
+        kpiOdds.style.color = 'var(--accent-red)';
+        
+        chexText = `Extreme velocity of ${velocity} inquiries completely flags ChexSystems. The algorithm logs a "run on checking accounts". Rejection rules trigger immediately.`;
+        ewsText = 'EWS triggers aggressive velocity fraud prevention rules. Cross-bank networks flag the profile. High risk of account restriction or post-approval shutdowns.';
+        decisionText = 'Auto-Denial. 75%+ rejections. Even approved accounts run a high risk of being flagged by back-office compliance and closed within 72 hours (risk mitigation).';
+      }
+
+      kpiCardRisk.classList.add(riskClass);
+      kpiRisk.textContent = riskLevel;
+      kpiRiskDesc.textContent = `Velocity: ${velocity} inquiries in 90 days. System risk markers updated.`;
+      kpiOdds.textContent = odds;
+      
+      fico = 740 + ficoDiff;
+      kpiFico.textContent = fico;
+      kpiFicoDiff.textContent = ficoDiff === 0 ? '0 pt impact (Stable)' : `${ficoDiff} pts (Est. FICO)`;
+      kpiFicoDiff.style.color = ficoDiff === 0 ? 'var(--text-sub)' : (ficoDiff > -15 ? 'var(--accent-yellow)' : 'var(--accent-red)');
+      
+      kpiCool.textContent = cooling;
+
+      flowChex.textContent = chexText;
+      flowEws.textContent = ewsText;
+      flowDecision.textContent = decisionText;
+    }
+
+    // Init UI
+    updateUI(1);
+  </script>
+</body>
+</html>
