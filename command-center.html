@@ -902,8 +902,8 @@
   <div class="page" id="page-accounts">
     <div class="section-hdr">
       <div>
-        <h2>Linked Banks</h2>
-        <div class="section-sub">Connected via Plaid · Read-only access · Bank-grade security</div>
+        <h2>Linked Banks <span style="font-size:11px;font-weight:600;background:rgba(201,169,110,.15);color:var(--gold);border:1px solid rgba(201,169,110,.3);border-radius:4px;padding:2px 7px;vertical-align:middle;letter-spacing:.05em">BETA</span></h2>
+        <div class="section-sub">Connected via Plaid · Read-only access · Bank-grade security · Sandbox mode</div>
       </div>
       <button class="btn btn-grad" onclick="linkBank()">+ Link Bank</button>
     </div>
@@ -3750,6 +3750,18 @@ Authorized and Signed Electronically.`;
   // CAMPAIGN WIZARD (ported from BBB-Frontend/campaigns/CampaignWizard)
   // ══════════════════════════════════════════════════════════════════
   const CW_BANKS = ['Chase','Bank of America','Wells Fargo','Citibank','US Bank','Capital One','TD Bank','PNC Bank','Truist','Regions Bank','SoFi','Ally Bank'];
+  function _getCwBankList() {
+    // Prefer banks from live opportunities cache, then linked banks, then fallback list
+    const savedOpps = JSON.parse(localStorage.getItem('bbb_opportunities') || 'null');
+    const fromOpps = Array.isArray(savedOpps) && savedOpps.length
+      ? [...new Set(savedOpps.map(o => o.bank_name || o.institution_name).filter(Boolean))]
+      : [];
+    const fromLinked = typeof _banksCache !== 'undefined' && Array.isArray(_banksCache) && _banksCache.length
+      ? [...new Set(_banksCache.map(b => b.institution_name || b.bank_name).filter(Boolean))]
+      : [];
+    const combined = [...new Set([...fromLinked, ...fromOpps, ...CW_BANKS])];
+    return combined.length > 0 ? combined : CW_BANKS;
+  }
   let _cwStep = 1;
   let _cwData = { bank_name:'', bonus_amount:'', required_deposit_volume:'', required_transaction_count:'', deadline:'', notes:'' };
 
@@ -3768,7 +3780,8 @@ Authorized and Signed Electronically.`;
   function renderCwBankGrid(filter) {
     const grid = document.getElementById('cw-bank-grid');
     if (!grid) return;
-    const banks = filter ? CW_BANKS.filter(b => b.toLowerCase().includes(filter.toLowerCase())) : CW_BANKS;
+    const allBanks = _getCwBankList();
+    const banks = filter ? allBanks.filter(b => b.toLowerCase().includes(filter.toLowerCase())) : allBanks;
     grid.innerHTML = banks.map(b => `<button class="cw-bank-chip${_cwData.bank_name===b?' selected':''}" onclick="selectCwBank('${b}')">${b}</button>`).join('');
   }
 
@@ -3914,6 +3927,12 @@ Authorized and Signed Electronically.`;
   function dismissTour() {
     localStorage.setItem('bb_tour_done', '1');
     document.getElementById('tour-overlay').style.display = 'none';
+    if (_bbbToken) {
+      fetch(`${BBB_API}/api/v1/auth/me`, {
+        method: 'PATCH', headers: _csrfHeaders({ 'Authorization': `Bearer ${_bbbToken}`, 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ onboarding_complete: true }),
+      }).catch(() => {});
+    }
   }
 
   // ══════════════════════════════════════════════════════════════════
