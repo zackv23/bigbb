@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>BigBB Local Dev Dashboard & Claude Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg0: #05070c;
+  --bg1: #090d16;
+  --bg2: #0f1524;
+  --bg3: #161e33;
+  --border: #1f2c4a;
+  --border-focus: #3b82f6;
+  --accent: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.4);
+  --pink: #E1306C;
+  --green: #10b981;
+  --red: #f43f5e;
+  --purple: #8b5cf6;
+  --teal: #14b8a6;
+  --orange: #f97316;
+  --text: #f8fafc;
+  --dim: #94a3b8;
+  --faint: #0f172a;
+}
+
+body {
+  background: var(--bg0);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+code, pre, .mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── TOP HEADER ── */
+.top-header {
+  background: linear-gradient(135deg, #090d16 0%, #0d1b33 50%, #090d16 100%);
+  border-bottom: 1px solid var(--border);
+  padding: 20px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.top-header::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #3b82f6, #8b5cf6, #14b8a6, transparent);
+}
+
+.logo-block { display: flex; flex-direction: column; }
+.logo-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.logo-title .accent { color: var(--pink); }
+.logo-sub { font-size: 11px; color: var(--dim); margin-top: 3px; letter-spacing: 0.05em; }
+
+.status-strip {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 21, 36, 0.6);
+  border: 1px solid var(--border);
+  border-radius: 30px;
+  padding: 6px 14px;
+  font-size: 11px;
+  color: var(--text);
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--dim);
+  transition: all 0.3s ease;
+}
+.status-dot.green { background: var(--green); box-shadow: 0 0 8px var(--green); }
+.status-dot.gold  { background: var(--pink);  box-shadow: 0 0 8px var(--pink); }
+.status-dot.red   { background: var(--red);   box-shadow: 0 0 8px var(--red); }
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  min-height: calc(100vh - 75px);
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  background: var(--bg1);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 75px;
+  height: calc(100vh - 75px);
+  overflow-y: auto;
+}
+
+.sidebar-section { margin-bottom: 24px; }
+
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--dim);
+  text-transform: uppercase;
+  padding: 0 24px 8px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 24px;
+  font-size: 13px;
+  color: var(--dim);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.sidebar-item:hover { color: var(--text); background: var(--bg2); }
+.sidebar-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(59, 130, 246, 0.08); }
+
+.sidebar-icon { font-size: 14px; }
+.sidebar-badge {
+  margin-left: auto;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* ── MAIN ── */
+.main { padding: 32px 40px; overflow-y: auto; }
+
+/* ── STAT ROW ── */
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s, border-color 0.2s;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+.stat-val {
+  font-family: 'Outfit', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.stat-lbl { font-size: 11px; color: var(--dim); font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* ── SECTION ── */
+.section { margin-bottom: 40px; scroll-margin-top: 100px; }
+
+.section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title-wrap { display: flex; align-items: center; gap: 14px; }
+.section-icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.1);
+}
+
+.section-title { font-family: 'Outfit', sans-serif; font-size: 18px; font-weight: 700; color: #fff; }
+.section-sub   { font-size: 12px; color: var(--dim); margin-top: 2px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+.btn:hover { background: var(--border); border-color: var(--dim); }
+.btn:active { transform: scale(0.97); }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent) 0%, #1e40af 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.4);
+}
+
+.btn-green {
+  background: linear-gradient(135deg, var(--green) 0%, #065f46 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+.btn-green:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.btn-red {
+  background: linear-gradient(135deg, var(--red) 0%, #991b1b 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(244, 63, 94, 0.3);
+}
+.btn-red:hover {
+  background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+}
+
+.btn-purple {
+  background: linear-gradient(135deg, var(--purple) 0%, #5b21b6 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+.btn-purple:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+}
+
+.btn-orange {
+  background: linear-gradient(135deg, #f97316 0%, #c2410c 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+.btn-orange:hover {
+  background: linear-gradient(135deg, #ea580c 0%, #9a3412 100%);
+}
+
+.btn-sm { padding: 6px 12px; font-size: 11px; }
+
+/* ── CARDS ── */
+.card-grid {
+  display: grid;
+  gap: 16px;
+}
+.card-grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.card-grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.card-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+.card {
+  background: var(--bg1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.card:hover { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.card.blue::before   { background: var(--accent); }
+.card.gold::before   { background: var(--pink); }
+.card.green::before  { background: var(--green); }
+.card.red::before    { background: var(--red); }
+.card.purple::before { background: var(--purple); }
+.card.teal::before   { background: var(--teal); }
+.card.orange::before { background: var(--orange); }
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+}
+.card-title-block { display: flex; align-items: center; gap: 10px; }
+.card-icon { font-size: 18px; }
+.card-title { font-size: 13px; font-weight: 700; color: #fff; }
+.card-meta  { font-size: 11px; color: var(--dim); margin-top: 1px; }
+
+.card-body { font-size: 12px; color: var(--dim); line-height: 1.6; }
+
+/* ── PIPELINE ── */
+.pipeline {
+  display: flex;
+  gap: 1px;
+  background: var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+
+.pipeline-step {
+  flex: 1;
+  background: var(--bg1);
+  padding: 16px 12px;
+  text-align: center;
+  position: relative;
+  transition: background 0.2s;
+}
+.pipeline-step:hover { background: var(--bg2); }
+
+.pipeline-num {
+  font-family: 'Outfit', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--dim);
+  margin-bottom: 6px;
+}
+.pipeline-label { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.pipeline-sub { font-size: 10px; color: var(--dim); line-height: 1.4; }
+
+.pipeline-step.blue   { border-bottom: 3px solid var(--accent); }
+.pipeline-step.gold   { border-bottom: 3px solid var(--pink); }
+.pipeline-step.green  { border-bottom: 3px solid var(--green); }
+.pipeline-step.purple { border-bottom: 3px solid var(--purple); }
+.pipeline-step.teal   { border-bottom: 3px solid var(--teal); }
+.pipeline-step.orange { border-bottom: 3px solid var(--orange); }
+.pipeline-step.red    { border-bottom: 3px solid var(--red); }
+
+/* ── CLAUDE CONSOLE / TERMINAL ── */
+.console-panel {
+  background: #020408;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+.console-header {
+  background: #090d16;
+  border-bottom: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.console-tabs { display: flex; gap: 4px; }
+.console-tab {
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.console-tab:hover { color: #fff; background: var(--bg2); }
+.console-tab.active { color: var(--accent); background: var(--bg3); }
+
+.console-controls { display: flex; gap: 8px; align-items: center; }
+
+.console-body {
+  height: 380px;
+  overflow-y: auto;
+  padding: 16px 20px;
+  color: #a3e635; /* terminal green */
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.console-input-area {
+  background: #070a12;
+  border-top: 1px solid var(--border);
+  padding: 12px 16px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.console-prompt {
+  color: var(--accent);
+  font-weight: 700;
+  user-select: none;
+}
+
+.console-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+/* ── TABLES ── */
+.mini-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+.mini-table th {
+  text-align: left;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--dim);
+  border-bottom: 1px solid var(--border);
+  padding: 8px 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.mini-table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--faint);
+  color: var(--dim);
+  vertical-align: middle;
+}
+.mini-table tr:hover td { background: rgba(255,255,255,0.01); }
+.mini-table td:first-child { color: var(--text); font-weight: 600; }
+.mini-table tr:last-child td { border-bottom: none; }
+
+/* ── FILE TREE ── */
+.file-tree { font-size: 11px; line-height: 1.8; color: var(--dim); }
+.file-tree .dir  { color: var(--accent); font-weight: 600; }
+.file-tree .file { color: var(--text); }
+.file-tree .tag  {
+  font-size: 9px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  color: var(--dim);
+}
+.file-tree .tag.g { border-color: #065f46; color: var(--green); }
+.file-tree .tag.b { border-color: #1e3a8a; color: var(--accent); }
+.file-tree .tag.o { border-color: #7c2d12; color: var(--orange); }
+.file-tree .tag.p { border-color: #4c1d95; color: var(--purple); }
+
+/* ── ALERTS ── */
+.alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: rgba(245,158,11,0.06);
+  border: 1px solid rgba(245,158,11,0.15);
+  border-radius: 10px;
+  padding: 14px 16px;
+  font-size: 12px;
+  color: #fcd34d;
+  line-height: 1.6;
+}
+.alert.blue { background: rgba(59,130,246,0.06); border-color: rgba(59,130,246,0.15); color: #93c5fd; }
+.alert.green { background: rgba(16,185,129,0.06); border-color: rgba(16,185,129,0.15); color: #a7f3d0; }
+
+.code-block {
+  background: #020408;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #94a3b8;
+  margin-top: 10px;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.key {
+  display: inline-block;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-bottom-width: 3px;
+  border-radius: 5px;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--text);
+  font-weight: 600;
+}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css">
+<style id="terminal-extra-styles">
+.terminal-panel{display:none;background:#0d1117;border-radius:0 0 8px 8px;overflow:hidden;flex-direction:column;height:480px;}
+.terminal-panel.active{display:flex;}
+.terminal-toolbar{background:#161b22;padding:6px 12px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #30363d;flex-shrink:0;}
+.terminal-toolbar-btn{background:#21262d;border:1px solid #30363d;color:#c9d1d9;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:12px;}
+.terminal-toolbar-btn:hover{background:#30363d;}
+.terminal-status{margin-left:auto;font-size:12px;}
+.terminal-status.connected{color:#3fb950;}
+.terminal-status.disconnected{color:#f85149;}
+.terminal-status.connecting{color:#d29922;}
+#terminal-container{flex:1;overflow:hidden;min-height:0;}
+</style>
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<div class="top-header">
+  <div class="logo-block">
+    <div class="logo-title">⬡ <span class="accent">BigBankBonus</span> — Local Dev Workspace</div>
+    <div class="logo-sub">FastAPI Backend &middot; Local SQLite DB &middot; Plaid Sandbox &middot; Sentry Debug &middot; Live Console</div>
+  </div>
+  <div class="status-strip">
+    <div class="status-pill" id="pill-backend"><div class="status-dot red" id="dot-backend"></div>Backend :8001</div>
+    <div class="status-pill" id="pill-postgres"><div class="status-dot red" id="dot-postgres"></div>Postgres :5432</div>
+    <div class="status-pill" id="pill-redis"><div class="status-dot red" id="dot-redis"></div>Redis :6379</div>
+    <div class="status-pill" id="pill-frontend"><div class="status-dot green" id="dot-frontend"></div>Frontend :5501</div>
+    <div class="status-pill" id="pill-watcher"><div class="status-dot red" id="dot-watcher"></div>Watcher</div>
+    <div class="status-pill" id="pill-churn"><div class="status-dot red" id="dot-churn"></div>Churn Agent</div>
+    <div class="status-pill" id="pill-marketing"><div class="status-dot red" id="dot-marketing"></div>Marketing Agent</div>
+    <div class="status-pill" id="pill-optimizer"><div class="status-dot red" id="dot-optimizer"></div>Optimizer Agent</div>
+    <div class="status-pill" id="pill-routing"><div class="status-dot red" id="dot-routing"></div>Routing Agent</div>
+    <div class="status-pill" id="pill-card"><div class="status-dot red" id="dot-card"></div>Card Agent</div>
+  </div>
+</div>
+
+<div class="layout">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Workspace</div>
+    <a class="sidebar-item active" href="#start">
+      <span class="sidebar-icon">▶</span> Control Center
+    </a>
+    <a class="sidebar-item" href="#console">
+      <span class="sidebar-icon">💻</span> Claude Console
+    </a>
+    <a class="sidebar-item" href="#terminal" id="sidebar-terminal-btn">
+      <span class="sidebar-icon">🖥</span> Claude Terminal
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Platform Guides</div>
+    <a class="sidebar-item" href="#chrome-tools">
+      <span class="sidebar-icon">🌐</span> Chrome Dev & v2
+    </a>
+    <a class="sidebar-item" href="#autosave">
+      <span class="sidebar-icon">💾</span> Auto-Save WIP
+    </a>
+    <a class="sidebar-item" href="#backup">
+      <span class="sidebar-icon">📦</span> Hourly Backups
+    </a>
+    <a class="sidebar-item" href="#restore">
+      <span class="sidebar-icon">↩</span> Recovery System
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Architecture</div>
+    <a class="sidebar-item" href="#stack">
+      <span class="sidebar-icon">⚡</span> Local Stack
+    </a>
+    <a class="sidebar-item" href="#folders">
+      <span class="sidebar-icon">📁</span> Project Layout
+    </a>
+    <a class="sidebar-item" href="#devscript">
+      <span class="sidebar-icon">⚙</span> Shell Commands
+    </a>
+  </div>
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- STAT ROW -->
+  <div class="stat-row">
+    <div class="stat-card">
+      <div class="stat-val" id="stat-routes" style="color:var(--accent)">-</div>
+      <div class="stat-lbl">API Routes</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-tests" style="color:var(--green)">-</div>
+      <div class="stat-lbl">Test Files</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:var(--pink)">:8001</div>
+      <div class="stat-lbl">FastAPI Port</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="stat-backups" style="color:var(--purple)">-</div>
+      <div class="stat-lbl">Total Backups</div>
+    </div>
+  </div>
+
+  <!-- ════════════════ CONTROL CENTER ════════════════ -->
+  <div class="section" id="start">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(59,130,246,0.1); color:var(--accent)">▶</div>
+        <div>
+          <div class="section-title">One Touch Start & Controller</div>
+          <div class="section-sub">Orchestrate development services, testing pipelines, and local backups</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <button class="btn btn-green" onclick="startStack()" id="btn-startup" style="font-weight:700; padding:10px 20px;">▶ Start Stack</button>
+        <button class="btn btn-red" onclick="shutdownStack()" id="btn-shutdown" style="font-weight:700; padding:10px 20px;">■ Shutdown</button>
+        <div style="width:1px; height:24px; background:var(--border); margin:0 4px;"></div>
+        <button class="btn btn-orange" onclick="runConsoleAction('restart_agents')">🔄 Restart Agents</button>
+        <button class="btn btn-primary" onclick="runConsoleAction('run_tests')">⚡ Run Test Suite</button>
+        <button class="btn btn-purple" onclick="runConsoleAction('backup_db')">📦 Backup Database</button>
+        <button class="btn btn-green" onclick="window.open('http://localhost:8001/docs', '_blank')">📖 Swagger API</button>
+      </div>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipeline-step blue" id="step-postgres">
+        <div class="pipeline-num">01</div>
+        <div class="pipeline-label">PostgreSQL</div>
+        <div class="pipeline-sub">Port 5432<br><span id="step-postgres-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step teal" id="step-redis">
+        <div class="pipeline-num">02</div>
+        <div class="pipeline-label">Redis Server</div>
+        <div class="pipeline-sub">Port 6379<br><span id="step-redis-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step gold" id="step-backend">
+        <div class="pipeline-num">03</div>
+        <div class="pipeline-label">FastAPI App</div>
+        <div class="pipeline-sub">Port 8001<br><span id="step-backend-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step green" id="step-frontend">
+        <div class="pipeline-num">04</div>
+        <div class="pipeline-label">Dev Frontend</div>
+        <div class="pipeline-sub">Port 5501<br><span id="step-frontend-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step purple" id="step-watcher">
+        <div class="pipeline-num">05</div>
+        <div class="pipeline-label">WIP Watcher</div>
+        <div class="pipeline-sub">Git Auto-Commit<br><span id="step-watcher-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step orange" id="step-churn">
+        <div class="pipeline-num">06</div>
+        <div class="pipeline-label">Churn Agent</div>
+        <div class="pipeline-sub">Gemini Optimizer<br><span id="step-churn-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step teal" id="step-marketing">
+        <div class="pipeline-num">07</div>
+        <div class="pipeline-label">Marketing Agent</div>
+        <div class="pipeline-sub">Campaign Builder<br><span id="step-marketing-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step blue" id="step-optimizer">
+        <div class="pipeline-num">08</div>
+        <div class="pipeline-label">Optimizer Agent</div>
+        <div class="pipeline-sub">Code Reviewer<br><span id="step-optimizer-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step gold" id="step-routing">
+        <div class="pipeline-num">09</div>
+        <div class="pipeline-label">Routing Agent</div>
+        <div class="pipeline-sub">ACH Pathing<br><span id="step-routing-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step purple" id="step-card">
+        <div class="pipeline-num">10</div>
+        <div class="pipeline-label">Card Agent</div>
+        <div class="pipeline-sub">Credit Rules<br><span id="step-card-status">Checking...</span></div>
+      </div>
+      <div class="pipeline-step red" id="step-logger">
+        <div class="pipeline-num">11</div>
+        <div class="pipeline-label">JSON Logger</div>
+        <div class="pipeline-sub">Active Logging<br><span id="step-logger-status">Checking...</span></div>
+      </div>
+    </div>
+
+    <div class="alert blue" style="margin-top:16px">
+      ℹ️ The development stack runs locally on Apple Silicon. Background tasks, watchers, and databases are governed by the local script <code>dev.sh</code>.
+    </div>
+  </div>
+
+  <!-- ════════════════ CLAUDE CONSOLE ════════════════ -->
+  <div class="section" id="console">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(139,92,246,0.1); color:var(--purple)">💻</div>
+        <div>
+          <div class="section-title">Claude Console & Terminal Monitor</div>
+          <div class="section-sub">Interactive local console for logging, running tests, and executing debugging workflows</div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-sm" onclick="clearConsole()">🧹 Clear Console</button>
+        <button class="btn btn-sm" id="btn-toggle-log" onclick="toggleAutoLogs()">🔄 Auto-Fetch Logs: ON</button>
+      </div>
+    </div>
+
+    <div class="console-panel">
+      <div class="console-header">
+        <div class="console-tabs">
+          <button class="console-tab active" id="tab-logs" onclick="switchConsoleTab('logs')">Live App Logs</button>
+          <button class="console-tab" id="tab-churn" onclick="switchConsoleTab('churn')">Churn Logs</button>
+          <button class="console-tab" id="tab-marketing" onclick="switchConsoleTab('marketing')">Marketing Logs</button>
+          <button class="console-tab" id="tab-optimizer" onclick="switchConsoleTab('optimizer')">Optimizer Logs</button>
+          <button class="console-tab" id="tab-routing" onclick="switchConsoleTab('routing')">Routing Logs</button>
+          <button class="console-tab" id="tab-card" onclick="switchConsoleTab('card')">Card Logs</button>
+          <button class="console-tab" id="tab-journal" onclick="switchConsoleTab('journal')">Session Journal</button>
+          <button class="console-tab" id="tab-tests" onclick="switchConsoleTab('tests')">Pytest Output</button>
+          <button class="console-tab" id="tab-cmd" onclick="switchConsoleTab('cmd')">Custom Command</button>
+          <button class="console-tab" id="tab-terminal" onclick="switchConsoleTab('terminal')">🖥 Terminal</button>
+        </div>
+        <div class="console-controls">
+          <span style="font-size: 10px; color: var(--dim);">Encoding: UTF-8</span>
+        </div>
+
+      </div>
+      <div class="terminal-panel" id="terminal-panel">
+        <div class="terminal-toolbar">
+          <span style="color:#58a6ff;font-weight:600;font-size:13px;">🖥 Claude Terminal</span>
+          <button class="terminal-toolbar-btn" onclick="terminalClear()">Clear</button>
+          <button class="terminal-toolbar-btn" onclick="terminalReconnect()">Reconnect</button>
+          <button class="terminal-toolbar-btn" onclick="terminalNewWindow()">⧉ Pop Out</button>
+          <span class="terminal-status disconnected" id="terminal-status">● Disconnected</span>
+        </div>
+        <div id="terminal-container"></div>
+        <div class="terminal-start-hint" id="terminal-start-hint" style="display:none;">
+          <div style="text-align:center;padding:40px;color:#8b949e;">
+            <div style="font-size:48px;margin-bottom:16px;">🖥</div>
+            <div style="font-size:16px;font-weight:600;color:#c9d1d9;margin-bottom:8px;">Terminal Server Not Running</div>
+            <div style="font-size:13px;margin-bottom:20px;">Start the terminal server to connect:</div>
+            <code style="background:#161b22;padding:8px 16px;border-radius:6px;font-size:13px;color:#58a6ff;">npx ttyd -p 7681 bash</code>
+            <div style="margin-top:16px;"><button class="terminal-toolbar-btn" onclick="terminalReconnect()" style="font-size:13px;padding:8px 20px;">Try Connect</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="console-body" id="console-output">Loading console streams...</div>
+      <div class="console-input-area" id="console-input-container" style="display: none;">
+        <span class="console-prompt">bigbb-dev $</span>
+        <input type="text" class="console-input" id="console-input" placeholder="Enter Python shell expression or dev test script command..." onkeydown="handleConsoleInput(event)">
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ CHROME UI DEV & V2 ════════════════ -->
+  <div class="section" id="chrome-tools">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(20,184,166,0.1); color:var(--teal)">🌐</div>
+        <div>
+          <div class="section-title">Chrome UI & v2 Debugging Environment</div>
+          <div class="section-sub">Chrome developer tools, accessibility testing endpoints, and local endpoints</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-3">
+      <div class="card teal">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">🎯</span>
+            <div>
+              <div class="card-title">Launch Local UI App</div>
+              <div class="card-meta">Serving at localhost:5501</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Open the static website funnel and dashboard directly in Chrome. Plaid Link sandbox operations and Stripe payment routes are fully accessible.
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-sm btn-primary" onclick="window.open('http://localhost:5501', '_blank')">🌐 Open Website</button>
+        </div>
+      </div>
+
+      <div class="card blue">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">⚡</span>
+            <div>
+              <div class="card-title">Sentry Exception Test</div>
+              <div class="card-meta">/debug/sentry-test</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Verify that the Sentry logger is actively bound and reporting errors. Triggers division-by-zero internally and generates a stack trace immediately.
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-sm btn-red" onclick="triggerSentryTest()">💥 Fire Test Error</button>
+        </div>
+      </div>
+
+      <div class="card purple">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">🩺</span>
+            <div>
+              <div class="card-title">Chrome Inspector (v2)</div>
+              <div class="card-meta">Remote devtools session</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Allows inspecting active Chrome web sessions, auditing accessibility attributes, performance timings (LCP), and console state errors.
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-sm btn-purple" onclick="window.open('chrome://inspect', '_blank')">🔍 Open Inspect</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ AUTO-SAVE ════════════════ -->
+  <div class="section" id="autosave">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(139,92,246,0.1); color:var(--purple)">💾</div>
+        <div>
+          <div class="section-title">Auto-Save Journal</div>
+          <div class="section-sub">Every filesystem change automatically stages and commits locally</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2">
+      <div class="card purple">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">⌚</span>
+            <div>
+              <div class="card-title">Git WIP Watcher</div>
+              <div class="card-meta">Python file watcher in background</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Watches files in <code>backend/app</code> and <code>backend/tests</code>. Whenever a save is completed, it commits immediately with:
+          <code>WIP: file_name @HH:MM:SS</code>. Allows safe code iteration.
+        </div>
+        <div class="code-block"><span class="cmd">python3</span> .dev-watcher.py &</div>
+      </div>
+
+      <div class="card blue">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">📒</span>
+            <div>
+              <div class="card-title">Session Journal Log</div>
+              <div class="card-meta">.dev-logs/session.jsonl</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Each file-write event records a JSON structured line in the local session journal storing the file path, epoch timestamp, git SHA, and message payload.
+        </div>
+        <div class="code-block"><span class="cmd">tail -f</span> <span class="path">.dev-logs/session.jsonl</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ BACKUPS ════════════════ -->
+  <div class="section" id="backup">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(245,158,11,0.1); color:var(--pink)">📦</div>
+        <div>
+          <div class="section-title">Database & Code Backups</div>
+          <div class="section-sub">Hourly automated snaps saved directly to user Desktop folder</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-3">
+      <div class="card gold">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">🗄️</span>
+            <div>
+              <div class="card-title">Hourly SQL Dumps</div>
+              <div class="card-meta">pg_dump → .sql.gz</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Backup targets the local PostgreSQL database, archives schemas, settings, and tables, zips it, and places it in <code>~/Desktop/BigBB TERMINAL/</code>.
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-sm btn-purple" onclick="runConsoleAction('backup_db')">Trigger DB Dump</button>
+        </div>
+      </div>
+
+      <div class="card orange">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">🗜️</span>
+            <div>
+              <div class="card-title">Hourly Code Zip</div>
+              <div class="card-meta">Full zip snapshot of bigbb/</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Zips the entire workspace directory, ignoring massive binary caches (<code>node_modules/</code>, <code>.venv/</code>, <code>.git/</code>) to create extremely light zip files.
+        </div>
+        <div style="margin-top:14px;">
+          <button class="btn btn-sm btn-purple" onclick="runConsoleAction('backup_code')">Trigger Code Zip</button>
+        </div>
+      </div>
+
+      <div class="card teal">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">🔁</span>
+            <div>
+              <div class="card-title">Backup Cron Daemon</div>
+              <div class="card-meta">Background loops</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          `dev.sh` runs a background task loop that calls `backup_db` and `backup_code` every 60 minutes automatically while you are working.
+        </div>
+        <div class="code-block"><span class="cmd">sleep 3600</span> && backup_both</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ RESTORE / RECOVERY ════════════════ -->
+  <div class="section" id="restore">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(244,63,94,0.1); color:var(--red)">↩</div>
+        <div>
+          <div class="section-title">Local Recovery & Restorations</div>
+          <div class="section-sub">Drops current DB and checks out code blocks to restore previous states</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2">
+      <div class="card red">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">💿</span>
+            <div>
+              <div class="card-title">Interactive Database Restore</div>
+              <div class="card-meta">Overwrites current postgres data</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Running database restore opens an interactive list of backups in your terminal. Selecting one drops <code>bigbb</code> database, recreates it, and loads SQL dump.
+        </div>
+        <div class="code-block"><span class="cmd">bash dev.sh</span> <span class="val">restore-db</span></div>
+      </div>
+
+      <div class="card gold">
+        <div class="card-header">
+          <div class="card-title-block">
+            <span class="card-icon">📂</span>
+            <div>
+              <div class="card-title">Code Restoration (Git rollbacks)</div>
+              <div class="card-meta">Resets local staging files</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-body">
+          Replays the auto-save WIP commits. You can easily pick a git hash to checkout a single file or restore the entire repository to that exact timestamp.
+        </div>
+        <div class="code-block"><span class="cmd">bash dev.sh</span> <span class="val">restore-code</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ STACK ════════════════ -->
+  <div class="section" id="stack">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(59,130,246,0.1); color:var(--accent)">⚡</div>
+        <div>
+          <div class="section-title">Local Stack Reference</div>
+          <div class="section-sub">Technology configurations and dependency details</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2">
+      <div class="card blue">
+        <table class="mini-table">
+          <thead>
+            <tr><th>Infrastructure Layer</th><th>Technology</th><th>Port</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>FastAPI Engine</td><td>Uvicorn server with hot reload</td><td>8001</td></tr>
+            <tr><td>Primary Database</td><td>PostgreSQL 14 (Brew service)</td><td>5432</td></tr>
+            <tr><td>Session cache</td><td>Redis 7 (Brew service)</td><td>6379</td></tr>
+            <tr><td>Static Web server</td><td>Python HTTP static file server</td><td>5501</td></tr>
+            <tr><td>Application Metrics</td><td>Prometheus instrumentation endpoint</td><td>/metrics</td></tr>
+            <tr><td>Swagger Interactive</td><td>OpenAPI schema generator UI</td><td>/docs</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card teal">
+        <table class="mini-table">
+          <thead>
+            <tr><th>Utility / Lib</th><th>Purpose</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>.venv (Python 3.14)</td><td>Sandbox environment libraries</td></tr>
+            <tr><td>alembic</td><td>Schema change management (migrations)</td></tr>
+            <tr><td>sentry-sdk</td><td>Live error logging reporting</td></tr>
+            <tr><td>pytest-asyncio</td><td>Asynchronous testing plugin</td></tr>
+            <tr><td>locustfile.py</td><td>HTTP API performance load tests</td></tr>
+            <tr><td>docker-compose.yml</td><td>Parity environments orchestrators</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ FOLDERS ════════════════ -->
+  <div class="section" id="folders">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(249,115,22,0.1); color:var(--orange)">📁</div>
+        <div>
+          <div class="section-title">Project Folder Map</div>
+          <div class="section-sub">Visual layout of files and subdirectories</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2">
+      <div class="card orange">
+        <div class="card-body file-tree">
+<span class="dir">~/Desktop/bigbb/</span>
+├── <span class="dir">backend/</span>
+│   ├── <span class="dir">app/</span>          <span class="tag g">FastAPI</span>
+│   │   ├── <span class="file">main.py</span>      <span class="tag b">entry point</span>
+│   │   ├── <span class="file">config.py</span>    <span class="tag b">settings</span>
+│   │   ├── <span class="dir">routers/</span>     <span class="tag g">24 routes</span>
+│   │   ├── <span class="dir">models/</span>      <span class="tag b">SQLAlchemy</span>
+│   │   ├── <span class="dir">services/</span>    <span class="tag b">business logic</span>
+│   │   └── <span class="dir">middleware/</span>  <span class="tag o">CSRF, security</span>
+│   ├── <span class="dir">tests/</span>        <span class="tag g">pytest files</span>
+│   ├── <span class="dir">migrations/</span>  <span class="tag b">alembic</span>
+│   └── <span class="file">requirements.txt</span>
+├── <span class="dir">docs/</span>             <span class="tag g">restructured docs</span>
+├── <span class="dir">.venv/</span>            <span class="tag b">Python 3.14 venv</span>
+├── <span class="dir">backups/</span>         <span class="tag g">SQL dumps</span>
+└── <span class="file">.env</span>              <span class="tag o">secrets</span>
+        </div>
+      </div>
+
+      <div class="card gold">
+        <div class="card-body file-tree">
+<span class="dir">~/Desktop/BigBB TERMINAL/</span>
+├── <span class="file">BigBB TERMINAL.md</span>    <span class="tag b">master plan (387KB)</span>
+├── <span class="file">merged.md</span>            <span class="tag b">docs snapshot</span>
+├── <span class="dir">BigbbBackup/</span>          <span class="tag g">53 files</span>
+│   ├── <span class="file">.env</span>
+│   ├── <span class="file">render.yaml</span>
+│   └── <span class="file">deploy-to-render.sh</span>
+└── <span class="file">bigbankbonus_website_backup_20260616.zip</span>
+                              <span class="tag o">100KB snapshot</span>
+        </div>
+        <div class="alert" style="margin-top:16px">
+          ⚠️ Use <strong>~/Desktop/bigbb/</strong> as the primary work directory.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════ DEV.SH ════════════════ -->
+  <div class="section" id="devscript">
+    <div class="section-head">
+      <div class="section-title-wrap">
+        <div class="section-icon" style="background:rgba(16,185,129,0.1); color:var(--green)">⚙️</div>
+        <div>
+          <div class="section-title">Command-Line Reference (dev.sh)</div>
+          <div class="section-sub">Standard commands to run inside the terminal workspace</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert green">
+      ✓ <strong>dev.sh</strong> is already written and placed at <code>~/Desktop/bigbb/dev.sh</code>.
+    </div>
+
+    <div class="code-block" style="margin-top: 14px; font-size: 11px; line-height: 2">
+<span class="cmt">## SERVICE MANAGEMENT</span>
+<span class="cmd">bash</span> dev.sh                  <span class="cmt"># start all services + watcher + auto-backup</span>
+<span class="cmd">bash</span> dev.sh <span class="val">stop</span>             <span class="cmt"># kill all background processes cleanly</span>
+<span class="cmd">bash</span> dev.sh <span class="val">logs</span>             <span class="cmt"># pretty-print live log stream</span>
+
+<span class="cmt">## TESTING PIPELINES</span>
+<span class="cmd">bash</span> dev.sh <span class="val">test</span>             <span class="cmt"># run full pytest suite</span>
+<span class="cmd">bash</span> dev.sh <span class="val">test-watch</span>       <span class="cmt"># pytest re-runs on every .py save</span>
+
+<span class="cmt">## SNAPSHOT UTILS</span>
+<span class="cmd">bash</span> dev.sh <span class="val">backup-db</span>        <span class="cmt"># pg_dump → Desktop/BigBB TERMINAL/</span>
+<span class="cmd">bash</span> dev.sh <span class="val">backup-code</span>      <span class="cmt"># zip snapshot → Desktop/BigBB TERMINAL/</span>
+<span class="cmd">bash</span> dev.sh <span class="val">restore-db</span>       <span class="cmt"># interactive: restore psql from dump</span>
+    </div>
+  </div>
+
+</main>
+</div>
+
+<script>
+// Sidebar active highlighting on scroll
+const sections = document.querySelectorAll('.section');
+const links = document.querySelectorAll('.sidebar-item');
+
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      links.forEach(l => l.classList.remove('active'));
+      const active = document.querySelector(`.sidebar-item[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { rootMargin: '-30% 0px -60% 0px' });
+
+sections.forEach(s => observer.observe(s));
+
+// Smooth scroll
+links.forEach(l => {
+  l.addEventListener('click', e => {
+    e.preventDefault();
+    const id = l.getAttribute('href').slice(1);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+
+// API Integration & Dev Dashboard Logic
+const API_BASE = "http://localhost:8001/api/v1/dev";
+let logsInterval = null;
+let currentConsoleTab = "logs";
+let isFetchingLogs = true;
+
+// Initialize status polling
+async function pollStatus() {
+  try {
+    const res = await fetch(`${API_BASE}/status`);
+    if (!res.ok) throw new Error("Backend offline");
+    const data = await res.json();
+    
+    // Update top header status indicators
+    updateStatusPill("dot-backend", true);
+    updateStatusPill("dot-postgres", data.postgres === "connected");
+    updateStatusPill("dot-redis", data.redis === "connected");
+    updateStatusPill("dot-watcher", data.watcher === "active");
+    updateStatusPill("dot-churn", data.churn_agent === "active");
+    updateStatusPill("dot-marketing", data.marketing_agent === "active");
+    updateStatusPill("dot-optimizer", data.optimizer_agent === "active");
+    updateStatusPill("dot-routing", data.routing_agent === "active");
+    updateStatusPill("dot-card", data.card_agent === "active");
+    updateStatusPill("dot-frontend", data.frontend === "online");
+
+    // Update stats counters
+    document.getElementById("stat-routes").innerText = data.counts.routes;
+    document.getElementById("stat-tests").innerText = data.counts.tests;
+    document.getElementById("stat-backups").innerText = data.counts.backups;
+
+    // Update One Touch Controller Pipeline statuses
+    document.getElementById("step-postgres-status").innerHTML = data.postgres === "connected" ? "<span style='color:var(--green); font-weight:600'>Connected</span>" : "<span style='color:var(--red); font-weight:600'>Offline</span>";
+    document.getElementById("step-redis-status").innerHTML = data.redis === "connected" ? "<span style='color:var(--green); font-weight:600'>Connected</span>" : "<span style='color:var(--red); font-weight:600'>Offline</span>";
+    document.getElementById("step-backend-status").innerHTML = "<span style='color:var(--green); font-weight:600'>Online</span>";
+    document.getElementById("step-watcher-status").innerHTML = data.watcher === "active" ? "<span style='color:var(--green); font-weight:600'>Active</span>" : "<span style='color:var(--dim)'>Inactive</span>";
+    document.getElementById("step-churn-status").innerHTML = data.churn_agent === "active" ? "<span style='color:var(--green); font-weight:600'>Active</span>" : "<span style='color:var(--dim)'>Inactive</span>";
+    document.getElementById("step-marketing-status").innerHTML = data.marketing_agent === "active" ? "<span style='color:var(--green); font-weight:600'>Active</span>" : "<span style='color:var(--dim)'>Inactive</span>";
+    document.getElementById("step-optimizer-status").innerHTML = data.optimizer_agent === "active" ? "<span style='color:var(--green); font-weight:600'>Active</span>" : "<span style='color:var(--dim)'>Inactive</span>";
+    document.getElementById("step-routing-status").innerHTML = data.routing_agent === "active" ? "<span style='color:var(--green); font-weight:600'>Active</span>" : "<span style='color:var(--dim)'>Inactive</span>";
+    document.getElementById("step-card-status").innerHTML = data.card_agent === "active" ? "<span style='color:var(--green); font-weight:600'>Active</span>" : "<span style='color:var(--dim)'>Inactive</span>";
+    document.getElementById("step-frontend-status").innerHTML = data.frontend === "online" ? "<span style='color:var(--green); font-weight:600'>Online</span>" : "<span style='color:var(--dim)'>Offline</span>";
+    document.getElementById("step-logger-status").innerHTML = data.logger === "active" ? "<span style='color:var(--green); font-weight:600'>Writing logs/</span>" : "<span style='color:var(--dim)'>Inactive</span>";
+
+  } catch (err) {
+    // Backend offline states
+    updateStatusPill("dot-backend", false);
+    updateStatusPill("dot-postgres", false);
+    updateStatusPill("dot-redis", false);
+    updateStatusPill("dot-watcher", false);
+    updateStatusPill("dot-churn", false);
+    updateStatusPill("dot-marketing", false);
+    updateStatusPill("dot-optimizer", false);
+    updateStatusPill("dot-routing", false);
+    updateStatusPill("dot-card", false);
+    updateStatusPill("dot-frontend", false);
+
+    document.getElementById("stat-routes").innerText = "-";
+    document.getElementById("stat-tests").innerText = "-";
+    document.getElementById("stat-backups").innerText = "-";
+
+    document.getElementById("step-postgres-status").innerHTML = "<span style='color:var(--red); font-weight:600'>Offline</span>";
+    document.getElementById("step-redis-status").innerHTML = "<span style='color:var(--red); font-weight:600'>Offline</span>";
+    document.getElementById("step-backend-status").innerHTML = "<span style='color:var(--red); font-weight:600'>Offline</span>";
+    document.getElementById("step-watcher-status").innerHTML = "<span style='color:var(--dim)'>Offline</span>";
+    document.getElementById("step-churn-status").innerHTML = "<span style='color:var(--dim)'>Offline</span>";
+    document.getElementById("step-marketing-status").innerHTML = "<span style='color:var(--dim)'>Offline</span>";
+    document.getElementById("step-optimizer-status").innerHTML = "<span style='color:var(--dim)'>Offline</span>";
+    document.getElementById("step-routing-status").innerHTML = "<span style='color:var(--dim)'>Offline</span>";
+    document.getElementById("step-card-status").innerHTML = "<span style='color:var(--dim)'>Offline</span>";
+    document.getElementById("step-frontend-status").innerHTML = "<span style='color:var(--red); font-weight:600'>Offline</span>";
+    document.getElementById("step-logger-status").innerHTML = "<span style='color:var(--dim)'>Inactive</span>";
+  }
+}
+
+function updateStatusPill(elementId, isConnected) {
+  const el = document.getElementById(elementId);
+  if (!el) return;
+  el.className = "status-dot " + (isConnected ? "green" : "red");
+}
+
+// Claude Console Functions
+function switchConsoleTab(tab) {
+  currentConsoleTab = tab;
+  document.querySelectorAll(".console-tab").forEach(t => t.classList.remove("active"));
+  document.getElementById(`tab-${tab}`).classList.add("active");
+  
+  const inputContainer = document.getElementById("console-input-container");
+  if (tab === "cmd") {
+    inputContainer.style.display = "flex";
+    document.getElementById("console-output").innerText = "Ready for command execution.\nEnter command below (e.g. '.venv/bin/pytest tests/test_auth.py -v' or 'python -V')...";
+  } else {
+    inputContainer.style.display = "none";
+    fetchTabContent(tab);
+  }
+}
+
+async function fetchTabContent(tab) {
+  const out = document.getElementById("console-output");
+  try {
+    if (tab === "logs") {
+      const res = await fetch(`${API_BASE}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_logs" })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.logs) {
+        out.innerText = data.logs.join("");
+        out.scrollTop = out.scrollHeight;
+      } else {
+        out.innerText = "No logs available or server is offline.";
+      }
+    } else if (tab === "churn") {
+      const res = await fetch(`${API_BASE}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_churn_logs" })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.logs) {
+        out.innerText = data.logs.join("");
+        out.scrollTop = out.scrollHeight;
+      } else {
+        out.innerText = "No churn agent logs found.";
+      }
+    } else if (tab === "marketing") {
+      const res = await fetch(`${API_BASE}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_marketing_logs" })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.logs) {
+        out.innerText = data.logs.join("");
+        out.scrollTop = out.scrollHeight;
+      } else {
+        out.innerText = "No marketing campaign agent logs found.";
+      }
+    } else if (tab === "optimizer") {
+      const res = await fetch(`${API_BASE}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_optimizer_logs" })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.logs) {
+        out.innerText = data.logs.join("");
+        out.scrollTop = out.scrollHeight;
+      } else {
+        out.innerText = "No code optimizer agent logs found.";
+      }
+    } else if (tab === "routing") {
+      const res = await fetch(`${API_BASE}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_routing_logs" })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.logs) {
+        out.innerText = data.logs.join("");
+        out.scrollTop = out.scrollHeight;
+      } else {
+        out.innerText = "No capital routing agent logs found.";
+      }
+    } else if (tab === "card") {
+      const res = await fetch(`${API_BASE}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_card_logs" })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.logs) {
+        out.innerText = data.logs.join("");
+        out.scrollTop = out.scrollHeight;
+      } else {
+        out.innerText = "No credit card strategy agent logs found.";
+      }
+    } else if (tab === "journal") {
+      const res = await fetch(`${API_BASE}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "get_session_journal" })
+      });
+      const data = await res.json();
+      if (data.status === "success" && data.journal) {
+        out.innerText = data.journal.join("");
+        out.scrollTop = out.scrollHeight;
+      } else {
+        out.innerText = "No session auto-save logs found.";
+      }
+    }
+  } catch (err) {
+    out.innerText = "Error connecting to Dev Dashboard API: Server Offline.";
+  }
+}
+
+// Action Trigger
+async function startStack() {
+  const btn = document.getElementById('btn-startup');
+  btn.disabled = true;
+  btn.textContent = '⏳ Starting...';
+  const out = document.getElementById("console-output");
+  switchConsoleTab('logs');
+  out.innerHTML = `<span style="color: var(--green); font-weight: 600;">Starting development stack...</span>\n\n`;
+  try {
+    const res = await fetch(`${API_BASE}/action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "one_touch_start" })
+    });
+    const data = await res.json();
+    out.innerText = data.stdout + "\n" + (data.stderr || "");
+  } catch (err) {
+    out.innerText = `Error: ${err.message}`;
+  }
+  btn.disabled = false;
+  btn.textContent = '▶ Start Stack';
+  out.scrollTop = out.scrollHeight;
+}
+
+async function shutdownStack() {
+  if (!confirm('Shut down all development services?')) return;
+  const btn = document.getElementById('btn-shutdown');
+  btn.disabled = true;
+  btn.textContent = '⏳ Stopping...';
+  const out = document.getElementById("console-output");
+  switchConsoleTab('logs');
+  out.innerHTML = `<span style="color: var(--red); font-weight: 600;">Shutting down development stack...</span>\n\n`;
+  try {
+    const res = await fetch(`${API_BASE}/action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "shutdown" })
+    });
+    const data = await res.json();
+    out.innerText = data.stdout + "\n" + (data.stderr || "");
+  } catch (err) {
+    out.innerText = `Error: ${err.message}`;
+  }
+  btn.disabled = false;
+  btn.textContent = '■ Shutdown';
+  out.scrollTop = out.scrollHeight;
+}
+
+async function runConsoleAction(action) {
+  const out = document.getElementById("console-output");
+  switchConsoleTab(action === "run_tests" ? "tests" : "logs");
+  
+  out.innerHTML = `<span style="color: var(--accent); font-weight: 600;">Executing [${action}]...</span>\n\n`;
+  
+  try {
+    const res = await fetch(`${API_BASE}/action`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: action })
+    });
+    const data = await res.json();
+    if (data.status === "success") {
+      if (action === "run_tests") {
+        out.innerText = data.stdout + "\n" + data.stderr;
+      } else {
+        out.innerText = `[SUCCESS] Output:\n${data.stdout}\n${data.stderr}`;
+      }
+    } else {
+      out.innerText = `[ERROR]: ${data.message}`;
+    }
+  } catch (err) {
+    out.innerText = `Error firing command: ${err.message}`;
+  }
+  out.scrollTop = out.scrollHeight;
+}
+
+// Sentry trigger test
+async function triggerSentryTest() {
+  try {
+    alert("Triggering divisions by zero exception Sentry test!");
+    const res = await fetch("http://localhost:8001/debug/sentry-test");
+    const data = await res.json();
+    alert("Response: " + JSON.stringify(data));
+  } catch (e) {
+    alert("Fired successfully! (Server connection threw expected 500 error representing ZeroDivisionError exception). Check your Sentry panel.");
+  }
+}
+
+// Custom command run
+async function handleConsoleInput(event) {
+  if (event.key === "Enter") {
+    const val = event.target.value.trim();
+    if (!val) return;
+    
+    const out = document.getElementById("console-output");
+    out.innerText += `\n\nbigbb-dev $ ${val}\n`;
+    event.target.value = "";
+    
+    try {
+      const res = await fetch(`${API_BASE}/action`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "execute_cmd", command: val })
+      });
+      const data = await res.json();
+      if (data.status === "success") {
+        out.innerText += data.stdout + "\n" + data.stderr;
+      } else {
+        out.innerText += `[BLOCKED]: ${data.message}`;
+      }
+    } catch (err) {
+      out.innerText += `Error executing: ${err.message}`;
+    }
+    out.scrollTop = out.scrollHeight;
+  }
+}
+
+function clearConsole() {
+  document.getElementById("console-output").innerText = "";
+}
+
+function toggleAutoLogs() {
+  isFetchingLogs = !isFetchingLogs;
+  document.getElementById("btn-toggle-log").innerText = `Auto-Fetch Logs: ${isFetchingLogs ? "ON" : "OFF"}`;
+  document.getElementById("btn-toggle-log").className = `btn btn-sm ${isFetchingLogs ? "" : "btn-red"}`;
+}
+
+// Autorefresh logs loop
+setInterval(() => {
+  if (isFetchingLogs) {
+    if (currentConsoleTab === "logs") fetchTabContent("logs");
+    if (currentConsoleTab === "churn") fetchTabContent("churn");
+    if (currentConsoleTab === "marketing") fetchTabContent("marketing");
+    if (currentConsoleTab === "optimizer") fetchTabContent("optimizer");
+    if (currentConsoleTab === "routing") fetchTabContent("routing");
+    if (currentConsoleTab === "card") fetchTabContent("card");
+  }
+}, 2000);
+
+// Status poll loop
+pollStatus();
+setInterval(pollStatus, 4000);
+
+// Initial logs view
+setTimeout(() => switchConsoleTab("logs"), 500);
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+<script>
+var _ti=null,_tw=null,_tf=null,_tin=false;
+function initTerminal(){if(_tin)return;_tin=true;
+_ti=new Terminal({theme:{background:'#0d1117',foreground:'#c9d1d9',cursor:'#58a6ff'},fontSize:14,fontFamily:"Monaco,Menlo,'Courier New',monospace",cursorBlink:true,scrollback:5000});
+_tf=new FitAddon.FitAddon();_ti.loadAddon(_tf);
+var el=document.getElementById('terminal-container');if(!el)return;
+_ti.open(el);_tf.fit();termConnect();
+window.addEventListener('resize',function(){if(_tf)_tf.fit();});}
+function termConnect(){
+var s=document.getElementById('terminal-status'),h=document.getElementById('terminal-start-hint'),p=document.getElementById('terminal-panel');
+if(s){s.textContent='\u25CF Connecting...';s.className='terminal-status connecting';}
+if(h)h.style.display='none';
+_tw=new WebSocket('ws://localhost:7681/ws',['tty']);
+_tw.binaryType='arraybuffer';
+_tw.onopen=function(){
+  _tw.send(JSON.stringify({AuthToken:''}));
+  if(s){s.textContent='\u25CF Connected';s.className='terminal-status connected';}
+  if(p)p.classList.remove('disconnected');
+  _ti.write('\r\n\x1b[32m\u2713 Connected to local terminal (ttyd)\x1b[0m\r\n');
+  if(_tf)_tf.fit();
+};
+_tw.onmessage=function(e){
+  if(!_ti)return;
+  var arr;
+  if(e.data instanceof ArrayBuffer){arr=new Uint8Array(e.data);}
+  else if(typeof e.data==='string'){arr=new TextEncoder().encode(e.data);}
+  if(!arr||arr.length===0)return;
+  _ti.write(arr.slice(1));
+};
+_tw.onclose=function(){
+  if(s){s.textContent='\u25CF Disconnected';s.className='terminal-status disconnected';}
+  if(p)p.classList.add('disconnected');
+  if(_ti)_ti.write('\r\n\x1b[31m[Disconnected]\x1b[0m\r\n');
+};
+_tw.onerror=function(){
+  if(s){s.textContent='\u25CF Disconnected';s.className='terminal-status disconnected';}
+  if(h)h.style.display='block';
+  if(_ti)_ti.write('\r\n\x1b[33m[Cannot connect to ws://localhost:7681]\x1b[0m\r\n\x1b[90mRun: ttyd -p 7681 bash\x1b[0m\r\n');
+};
+_ti.onData(function(d){
+  if(_tw&&_tw.readyState===WebSocket.OPEN){_tw.send('0'+d);}
+});}
+function terminalClear(){if(_ti)_ti.clear();}
+function terminalReconnect(){if(_tw){try{_tw.close();}catch(e){}}setTimeout(termConnect,400);}
+function terminalNewWindow(){window.open('http://localhost:7681','_blank','width=1000,height=700');}
+(function(){
+var _o=window.switchConsoleTab;
+window.switchConsoleTab=function(tab){
+  var tp=document.getElementById('terminal-panel'),co=document.getElementById('console-output'),ci=document.getElementById('console-input-container');
+  if(tab==='terminal'){
+    document.querySelectorAll('.console-tab').forEach(function(t){t.classList.remove('active');});
+    if(co)co.style.display='none';
+    if(ci)ci.style.display='none';
+    var tb=document.getElementById('tab-terminal');
+    if(tb)tb.classList.add('active');
+    if(tp)tp.classList.add('active');
+    initTerminal();
+    if(_tf)setTimeout(function(){_tf.fit();},150);
+  }else{
+    if(tp)tp.classList.remove('active');
+    if(co)co.style.display='';
+    if(ci)ci.style.display='';
+    if(_o)_o(tab);
+  }
+};
+})();
+document.addEventListener('DOMContentLoaded',function(){
+  var btn=document.getElementById('sidebar-terminal-btn');
+  if(btn){btn.addEventListener('click',function(e){
+    e.preventDefault();
+    document.querySelectorAll('.sidebar-item').forEach(function(i){i.classList.remove('active');});
+    btn.classList.add('active');
+    var sec=document.getElementById('console');
+    if(sec)sec.scrollIntoView({behavior:'smooth'});
+    setTimeout(function(){switchConsoleTab('terminal');},300);
+  });}
+});
+</script>
+</body>
+</html>

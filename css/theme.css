@@ -1,0 +1,27 @@
+/* ─────────────────────────────────────────────────────────────────────
+   css/theme.css — Canonical brand theme. SINGLE SOURCE OF TRUTH.
+   Source values: index.html (the GOD file). Loaded by index.html and
+   command-center.html so the palette can never drift between them again.
+   Theme: gradient purple → pink → orange. (NO gold — Finix-era leftover, removed.)
+   ───────────────────────────────────────────────────────────────────── */
+:root {
+  /* Brand */
+  --purple: #833AB4;
+  --pink:   #E1306C;
+  --orange: #F77737;
+  --grad:   linear-gradient(135deg, #833AB4, #E1306C, #F77737);
+
+  /* Surfaces  (--bg/--bg2 are aliases of --dark/--dark2 for command-center) */
+  --dark:   #06091a;
+  --dark2:  #0d1225;
+  --bg:     #06091a;
+  --bg2:    #0d1225;
+  --card:   #111827;
+  --card2:  #161f32;
+  --border: #1f2a40;
+
+  /* Text */
+  --text:   #f1f5f9;
+  --sub:    #cbd5e1;
+  --muted:  #94a3b8;
+}

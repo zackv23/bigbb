@@ -173,7 +173,7 @@
 
 <script>
   const _isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-  const BBB_API = (window.BBB_API_BASE || (_isLocal ? 'http://localhost:8000' : 'https://bigbb-api-prod.onrender.com')).replace(/\/$/, '');
+  const BBB_API = (window.BBB_API_BASE || (_isLocal ? 'http://localhost:8000' : 'https://api-production-dac3.up.railway.app')).replace(/\/$/, '');
 
   function _getCsrfToken() {
     const match = document.cookie.split('; ').find(row => row.startsWith('csrf_token='));
